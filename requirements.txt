@@ -1,0 +1,10 @@
+# Locked together so FastAPI's TestClient and the production HTTP stack use
+# compatible Starlette and httpx releases.
+fastapi==0.115.12
+starlette==0.46.2
+uvicorn==0.30.6
+httpx==0.27.2
+python-multipart==0.0.20
+Pillow==10.4.0
+pytesseract==0.3.13
+cryptography==43.0.3

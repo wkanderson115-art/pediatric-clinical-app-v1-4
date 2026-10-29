@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-10-29",
+  "status": "原始资料已核对公开入口；题目和学习摘要未经临床专家逐题审查。",
+  "policy": {
+    "source_hierarchy": "国家卫生健康委员会规范/卫生行业标准 > 具名学会指南 > 编辑性学习摘要",
+    "uncited": "没有逐项来源视为待核查，不给出临床执行医嘱",
+    "drug": "API返回的第三方资料不等同国家药监局核验，药名不同规格/企业必须分开核对",
+    "lab": "只在单位完全一致且采用报告本院同年龄参考限时做数值高低比较；不能仅依单项指标确诊"
+  },
+  "sources": [
+    {
+      "id": "mpp25",
+      "title": "儿童肺炎支原体肺炎诊疗指南（2025年版）",
+      "issuer": "国家卫健委、国家中医药局",
+      "year": 2025,
+      "kind": "国家临床诊疗指南",
+      "url": "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml",
+      "scope": "儿童肺炎支原体肺炎的诊断分层与治疗原则"
+    },
+    {
+      "id": "diarrhea20",
+      "title": "儿童急性感染性腹泻病诊疗规范（2020年版）",
+      "issuer": "国家卫健委、国家中医药局",
+      "year": 2020,
+      "kind": "国家诊疗规范",
+      "url": "https://www.nhc.gov.cn/yzygj/c100068/202009/a0720947d2c744b49fc91b32d82293ef.shtml",
+      "scope": "急性感染性腹泻评估、口服补液和抗菌药合理使用"
+    },
+    {
+      "id": "chart10",
+      "title": "病历书写基本规范（2010）",
+      "issuer": "原卫生部",
+      "year": 2010,
+      "kind": "部门规范",
+      "url": "https://www.nhc.gov.cn/wjw/c100175/201002/b1bec53d90f243e0861529723f00221a.shtml",
+      "scope": "入院记录、病程记录、门急诊文书的结构与时限"
+    },
+    {
+      "id": "cbc21",
+      "title": "WS/T 779—2021 儿童血细胞分析参考区间",
+      "issuer": "国家卫健委",
+      "year": 2021,
+      "kind": "卫生行业标准",
+      "url": "https://www.nhc.gov.cn/fzs/c100048/202105/481e639c307a4effa14957f4d0d738fd.shtml",
+      "scope": "儿童血细胞项目的适用年龄和参考区间"
+    },
+    {
+      "id": "bio21",
+      "title": "WS/T 780—2021 儿童临床常用生化检验项目参考区间",
+      "issuer": "国家卫健委",
+      "year": 2021,
+      "kind": "卫生行业标准",
+      "url": "https://www.nhc.gov.cn/wjw/s9492/202105/3d5159ef7619452b9842ea9520189a11.shtml",
+      "scope": "28天至18岁、标准列举项目的儿童生化参考区间"
+    },
+    {
+      "id": "pipl",
+      "title": "中华人民共和国个人信息保护法",
+      "issuer": "全国人大常委会",
+      "year": 2021,
+      "kind": "国家法律",
+      "url": "https://shca.miit.gov.cn/zwgk/zcwj/flfg/art/2022/art_ed935fe2807e4787bfb8ca8e659e5524.html",
+      "scope": "医疗健康信息与未满14周岁信息安全"
+    },
+    {
+      "id": "nmpa",
+      "title": "国家药监局药品数据查询",
+      "issuer": "国家药监局",
+      "year": null,
+      "kind": "官方数据查询入口",
+      "url": "https://datasearch.nmpa.gov.cn/",
+      "scope": "药品注册信息人工核验，不是公开药品说明书API"
+    }
+  ]
+}

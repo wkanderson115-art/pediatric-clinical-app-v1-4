@@ -1,0 +1,51 @@
+name: Verify Pediatric Clinical App V1.4
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install locked dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pytest==8.3.5
+
+      - name: Run API and content regression tests
+        run: python -m pytest -q
+
+      - name: Check browser scripts
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate browser JavaScript
+        run: |
+          for file in web/*.js tests_client/*.cjs; do node --check "$file"; done
+
+      - name: Build deployment container
+        run: docker build --tag pediatric-clinical-app:v1.4 .
+
+      - name: Package verified source
+        run: |
+          mkdir -p dist
+          git archive --format=zip --prefix=pediatric_clinical_app_v1_4/ --output=dist/pediatric_clinical_app_v1_4_verified_source.zip HEAD
+
+      - name: Upload verified source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: pediatric-clinical-app-v1-4-verified-source
+          path: dist/pediatric_clinical_app_v1_4_verified_source.zip
+          retention-days: 30

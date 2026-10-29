@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#143b3b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="儿科临床药典">
+<meta name="description" content="中国儿科临床学习：中文药品说明书、诊疗学习、化验单解读、输液安全、病历书写质控、疑难问答。">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png">
+<title>儿科临床药典</title>
+<link rel="stylesheet" href="/style.css">
+<script defer src="/main.js"></script>
+<script defer src="/learning.js"></script>
+<script defer src="/clinical.js"></script>
+<script defer src="/chart-review.js"></script>
+<script defer src="/photo-ocr.js"></script>
+<script defer src="/study-pro.js"></script>
+<script defer src="/secure-backup.js"></script>
+<script defer src="/iv-review.js"></script>
+<script defer src="/audit-workbench.js"></script>
+<script defer src="/virtual-patient.js"></script>
+<script defer src="/admin-ui.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">✳</div>
+    <div class="brand"><strong>儿科临床药典</strong><small>中国药品说明书 · 专业学习版</small></div>
+    <span class="version">V1.4</span>
+  </header>
+
+  <main class="main">
+    <section class="page active" id="page-search" aria-label="查药">
+      <div class="hero"><span class="eyebrow">PEDIATRIC DRUG REFERENCE</span><h1>查药，更要读懂<br>儿童用药规则。</h1><p>按通用名查询中国药品资料；对照生产企业、批准文号，再到国家药监局官方核验。</p></div>
+      <div class="status-bar" id="api-status" role="status">正在检查说明书数据连接…</div>
+      <form id="search-form" class="search-form">
+        <label class="sr-only" for="drug-keyword">输入中文药品名称</label>
+        <div class="search-input-wrap"><span class="glass">⌕</span><input id="drug-keyword" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：阿奇霉素、头孢曲松" maxlength="60" required><button type="submit">查询</button></div>
+      </form>
+      <div class="quick-line"><span>常见查询</span><div class="chips" id="quick-chips"><button data-keyword="阿奇霉素">阿奇霉素</button><button data-keyword="头孢曲松">头孢曲松</button><button data-keyword="氨苄西林">氨苄西林</button><button data-keyword="甲泼尼龙">甲泼尼龙</button></div></div>
+      <div id="notice" class="notice hidden" role="alert"></div>
+      <div class="verify-teaser"><div><strong>国家药监局官方核验</strong><small>核查药品批准文号、厂家和剂型；不等于已接通官方数据库 API</small></div><button id="home-verify" type="button">去核验 ›</button></div>
+      <section id="results-block" class="results-block hidden"><div class="section-heading"><h2>查询结果</h2><span id="result-count"></span></div><div id="search-results"></div><button id="load-more" class="outline-button hidden">查看更多</button></section>
+      <section class="home-section" id="home-learning"><div class="section-heading"><h2>儿科重点学习</h2><span>17个基础系统 · 89个专题 · 54条诊疗路径 · 25道循证练习</span></div><div class="topic-grid" id="home-topics"></div></section>
+      <div class="source-tip"><div class="tip-symbol">!</div><p><strong>临床安全提醒</strong><br>仅用于学习和文献查阅，不直接生成处方。相同通用名可对应不同剂型、规格、企业和批准文号；未核验数据不得直接用于患儿医嘱。</p></div>
+    </section>
+
+    <section class="page" id="page-study" aria-label="临床学习">
+      <div class="page-title"><span class="eyebrow">CLINICAL STUDY</span><h1>儿科临床学习</h1><p>从诊断、病原、适应证到用药复评；下面是学习提纲，不代替指南全文。</p></div>
+      <div class="catalog-info"><strong id="library-counter">正在加载学习库…</strong><small>按症状、病名或系统检索，点击专题查看学习要点及关联资料。</small></div>
+      <label for="study-keyword" class="sr-only">搜索儿科学习内容</label>
+      <input id="study-keyword" class="study-keyword" type="search" placeholder="搜索：发热、肺炎、血尿、休克…" autocomplete="off">
+      <div class="study-pills" id="study-filters"></div>
+      <div class="feature-strip"><button type="button" data-page="clinic">🩺 系统诊疗路径 ›</button><button type="button" data-page="labs">🧪 化验单全解 ›</button><button type="button" data-page="exams">🩻 检查报告解读 ›</button><button type="button" data-page="infusion">💧 输液安全专题 ›</button><button type="button" data-page="chart">📋 病历书写质控 ›</button><button type="button" data-page="sim">🏥 全真模拟接诊 ›</button><button type="button" data-page="quiz">🎓 循证病例练习 ›</button><button type="button" data-page="evidence">📚 来源与审校状态 ›</button><button type="button" data-page="audit">🔎 医学逐条审校 ›</button></div>
+      <div class="topic-stack" id="study-topics"></div>
+      <div class="reference-box"><h3>中国权威资料入口</h3><a href="https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml" target="_blank" rel="noopener noreferrer">儿童肺炎支原体肺炎诊疗指南（2025年版） <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/" target="_blank" rel="noopener noreferrer">国家药监局数据查询 <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/datasearch/search-help.html" target="_blank" rel="noopener noreferrer">国家药监局查询帮助 <span>↗</span></a></div>
+    </section>
+
+    <section class="page" id="page-learn-detail" aria-label="学习专题详情">
+      <div class="detail-header"><button id="learn-back" class="back-button" type="button">‹ 返回学习库</button><button id="learn-ask" class="save-button" type="button">针对本专题提问 ↗</button></div>
+      <div class="page-title"><span class="eyebrow" id="learn-system-label">儿科专题</span><h1 id="learn-topic-title"></h1><p id="learn-review-status"></p></div>
+      <div id="learn-content" class="learn-content"></div>
+      <div id="learn-sources" class="reference-box"></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p>学习摘要不能作为个体患儿的诊断或处方依据。存在急症征象时，优先执行医院急救规范。</p></div>
+    </section>
+
+    <section class="page" id="page-ask" aria-label="疑难问题询问">
+      <div class="page-title"><span class="eyebrow">CLINICAL QUESTIONS</span><h1>疑难问题 · 随时询问</h1><p>遇到非常规症状、鉴别诊断或陌生治疗原则，先检索本地知识；经同意才将匿名问题发给AI辅助分析。</p></div>
+      <div class="privacy-tip">🔒 默认只在本机保存学习记录。<strong>请勿填写真实患儿姓名、手机号、身份证、住院号、精确地址或可识别病历。</strong>若选择AI，提问内容会发送给相应服务商。</div>
+      <form id="ask-form" class="ask-form">
+        <label for="ask-question">你遇到了什么疑难问题？</label>
+        <textarea id="ask-question" rows="5" maxlength="1500" required placeholder="例如：学龄儿童发热咳嗽，初次考虑支原体肺炎，72小时没有改善，应该先排查哪些情况？（请使用虚构或匿名化信息）"></textarea>
+        <label for="ask-tag">归类（方便以后复习）</label>
+        <select id="ask-tag"><option value="疑难病例">疑难病例</option><option value="呼吸系统">呼吸系统</option><option value="消化系统">消化系统</option><option value="泌尿与肾脏">泌尿与肾脏</option><option value="过敏与免疫">过敏与免疫</option><option value="儿科临床药学">临床用药</option><option value="儿科急诊与重症">急诊重症</option><option value="其他">其他</option></select>
+        <div class="ask-switch" role="group" aria-label="回答方式"><label><input type="radio" name="ask-mode" value="local" checked>本地知识库 · 不上传</label><label><input type="radio" name="ask-mode" value="ai">AI辅助分析 · 需授权</label></div>
+        <div id="ai-consent-box" class="ai-consent hidden"><label><input id="ai-consent" type="checkbox">我已去除可识别患者信息，并同意将这个问题发送给已配置的第三方AI服务商。</label><label for="ai-code">AI访问码（由软件部署者设定，不是AI API Key）</label><input type="password" id="ai-code" maxlength="128" autocomplete="off" placeholder="输入服务端APP_ACCESS_CODE"><small id="ai-status">正在检查AI配置…</small></div>
+        <button id="ask-submit" type="submit" class="primary-button">检索并保存学习记录</button>
+      </form>
+      <div id="ask-feedback" class="notice hidden" role="status"></div>
+      <div id="ask-result" class="ask-result hidden" aria-live="polite"></div>
+    </section>
+
+    <section class="page" id="page-notes" aria-label="学习记录">
+      <div class="page-title"><span class="eyebrow">LEARNING JOURNAL</span><h1>我的疑难问题记录</h1><p>自动记录提问、查询结果和相关来源；可检索、编辑个人笔记、导出备份或彻底删除。</p></div>
+      <div class="records-toolbar"><input type="search" id="notes-search" placeholder="搜索历史问题或笔记…" autocomplete="off"><span id="notes-count">0条</span></div>
+      <div class="records-actions"><button id="notes-secure-export" type="button" class="outline-button">加密导出学习记录</button><button id="notes-secure-import" type="button" class="outline-button">导入加密备份</button></div>
+      <div class="records-actions"><button id="notes-export" class="outline-button" type="button">导出JSON备份</button><button id="notes-import-btn" class="outline-button" type="button">导入备份</button><input type="file" accept=".json,application/json" id="notes-import" class="sr-only"></div>
+      <p class="footnote">数据保存在当前 iPhone 浏览器的本地数据库中，未加密、不会自动跨设备同步。清理 Safari 网站数据或卸载 PWA 可能导致丢失，请定期导出备份；不要记录真实病人身份信息。</p>
+      <div class="note-list" id="notes-list"></div>
+      <div id="notes-feedback" class="notice hidden"></div>
+    </section>
+
+    <section class="page" id="page-tools" aria-label="工具与收藏">
+      <div class="clinic-panel"><h2>专业学习扩展</h2><div class="chart-actions"><button type="button" class="outline-button" data-page="sim">🏥 全真模拟接诊</button><button type="button" class="outline-button" data-page="quiz">🎓 循证模拟病例练习</button><button type="button" class="outline-button" data-page="evidence">📚 来源与内容审核状态</button></div></div>
+      <div class="page-title"><span class="eyebrow">TOOLS</span><h1>学习工具</h1><p>官方批准信息核验、剂量数学练习与常用药收藏。</p></div>
+      <div class="tools-menu"><button type="button" data-page="sim">🏥 全真模拟接诊 <span>›</span></button><button type="button" data-page="clinic">🩺 诊断与治疗学习路径 <span>›</span></button><button type="button" data-page="labs">📷 拍照识别与化验单全解 <span>›</span></button><button type="button" data-page="exams">🩻 拍照识别影像/心电/超声报告 <span>›</span></button><button type="button" data-page="infusion">💧 静脉输液安全学习 <span>›</span></button><button type="button" data-page="chart">📋 病历书写智能质控 <span>›</span></button><button type="button" data-page="ask">✳ 疑难病例AI提问 <span>›</span></button><button type="button" data-page="notes">◷ 我的疑难问题记录 <span>›</span></button><button type="button" data-page="verify">🛡 国家药监局批文核验 <span>›</span></button><button type="button" data-page="calc">▦ 儿童剂量计算练习 <span>›</span></button><button type="button" data-page="favs">☆ 常用药品收藏 <span>›</span></button><button type="button" data-page="admin">🔐 API 密钥管理 <span>›</span></button></div>
+    </section>
+
+    <section class="page" id="page-clinic" aria-label="诊断与治疗学习路径">
+      <div class="page-title"><span class="eyebrow">PEDIATRIC CARE PATHWAYS</span><h1>诊疗路径学习</h1><p>54条结构化常见病学习路径，新增外伤、过敏、泌尿等专题；可按系统筛选，并记录非常规情况。</p></div>
+      <div class="warn-card"><strong>内容边界</strong><p>这是编辑性学习路径而非中国指南全文。每条路径都标识资料出处；无已核实来源或未经逐条审定的内容不可直接当作临床医嘱。</p></div>
+      <div class="catalog-filter-row"><input type="search" id="clinic-search" class="study-keyword" placeholder="搜索疾病、症状、药物…" aria-label="搜索诊疗路径"><select id="clinic-category" aria-label="诊疗疾病分类"><option value="all">全部系统</option></select></div><p id="clinic-filter-count" class="catalog-remaining"></p>
+      <div id="clinic-list" class="clinical-list"></div>
+    </section>
+
+    <section class="page" id="page-labs" aria-label="儿童化验单数值与意义">
+      <div class="page-title"><span class="eyebrow">PEDIATRIC LABS</span><h1>化验单全解</h1><p>血常规、感染、电解质、血气、凝血、肝肾、尿便、免疫、内分泌、新生儿检查；逐项查含义及常见误区。</p></div>
+      <div class="warn-card"><strong>先看报告的儿童参考范围</strong><p>WS/T 779—2021 和 780—2021 只覆盖所规定项目及28天至18岁人群，且需实验室验证；本版不内置成人通用“正常值”。新生儿须按日龄、胎龄、具体检测方法判读。任何结果不能单项确诊或决定输液。</p></div>
+      <div class="clinic-panel">
+        <h2>① 单项数值对比练习</h2>
+        <label for="lab-test">检验项目</label><select id="lab-test"></select>
+        <div class="two-cols"><div><label for="lab-age">年龄（月；0代表未满1月）</label><input id="lab-age" type="number" min="0" max="216" step="any" placeholder="例如：48"></div><div><label for="lab-value">报告检验值</label><input id="lab-value" type="text" maxlength="50" inputmode="decimal" placeholder="数值或阳性/阴性"></div></div>
+        <div id="lab-qualitative-wrap" class="hidden"><label for="lab-qualitative">定性结果原文（仅供学习，无法数值比较）</label><input id="lab-qualitative" type="text" maxlength="80" placeholder="例如：阳性、阴性、未检出、1:160"></div>
+        <label for="lab-unit">结果单位（须与报告一致）</label><input id="lab-unit" type="text" maxlength="35" placeholder="例如 ×10⁹/L" autocomplete="off">
+        <div class="two-cols"><div><label for="lab-low">报告参考下限</label><input id="lab-low" type="number" step="any" inputmode="decimal" placeholder="从报告抄录"></div><div><label for="lab-high">报告参考上限</label><input id="lab-high" type="number" step="any" inputmode="decimal" placeholder="从报告抄录"></div></div>
+        <button id="lab-eval" type="button" class="primary-button">分析高低与临床意义</button><div id="lab-output" class="check-result" aria-live="polite"></div>
+      </div>
+
+      <div class="clinic-panel photo-import-panel" data-ocr-type="labs">
+        <h2>📷 拍照导入化验单（新增）</h2>
+        <p class="subtext">可用 iPhone 相机/相册选择照片。请先只保留化验项目区域，裁掉姓名、二维码、条码和病历号；上传到自建OCR服务器前需要逐次确认。未配置OCR时可用 iPhone“实况文本”复制后粘贴到下方。</p>
+        <input type="file" class="ocr-file" accept="image/*" aria-label="选择化验单照片">
+        <div class="ocr-image-panel hidden">
+          <div class="ocr-crop-controls"><label>左侧裁切 % <input class="ocr-crop-left" type="number" min="0" max="90" value="0"></label><label>右侧裁切 % <input class="ocr-crop-right" type="number" min="0" max="90" value="0"></label><label>顶部裁切 % <input class="ocr-crop-top" type="number" min="0" max="90" value="0"></label><label>底部裁切 % <input class="ocr-crop-bottom" type="number" min="0" max="90" value="0"></label></div>
+          <canvas class="ocr-preview" role="img" aria-label="只包含选择的裁切区域，检查是否含可识别信息"></canvas>
+          <p class="subtext">预览图是将被传输的实际裁切区域。若仍含姓名等身份信息，请修改裁切或不要上传。</p>
+          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已核对预览图，并确认只包含虚构或充分去标识化的教学资料；同意本次图片发送到自建OCR服务</label>
+          <label>OCR访问码（由部署者设置）<input type="password" class="ocr-code" autocomplete="off" placeholder="OCR_ACCESS_CODE"></label>
+          <button class="primary-button ocr-start" type="button">仅本次上传并提取文字</button>
+        </div>
+        <div class="check-result ocr-status" role="status"></div>
+        <label>OCR识别文本（可编辑，请对照原图修正）</label>
+        <textarea class="ocr-text" rows="5" maxlength="9000" placeholder="识别结果或从iPhone实况文本复制的文字…"></textarea>
+        <button class="outline-button ocr-extract" type="button">识别可能的化验项目（候选，不自动诊断）</button>
+        <div class="report-output ocr-candidates"></div>
+      </div>
+      <div class="clinic-panel">
+        <h2>② 多项化验单批量学习</h2>
+        <p class="subtext">把匿名报告的多行数值整理为“项目代码 | 数值 | 单位 | 下限 | 上限”。不确定参考范围可用“-”占位。每次最多80行；定性项目可填写“未检出、阳性”等结果并以“-”代替参考限。例子均为虚构数据。</p>
+        <label for="lab-rows">粘贴整理后的报告内容（请勿包含姓名、病历号）</label>
+        <textarea id="lab-rows" rows="5" spellcheck="false" maxlength="12000" placeholder="WBC | 12.0 | ×10⁹/L | 4.0 | 10.0
+MP_PCR | 未检出 | 定性 | - | -"></textarea>
+        <div class="chart-actions"><button id="lab-batch" type="button" class="primary-button">逐项解析</button><button id="lab-example" type="button" class="outline-button">载入匿名示例</button></div>
+        <div id="lab-report-output" class="report-output" aria-live="polite"></div>
+        <small class="subtext">本地规则解读：不会上传报告，也不做自动诊断；请自行检查每行单位与参考限是否确属同一检测项目。</small>
+      </div>
+      <div class="section-heading"><h2>③ 检验指标词典</h2><span id="lab-count"></span></div>
+      <div class="catalog-filter-row"><input type="search" id="lab-search" placeholder="搜索 WBC、血钾、降钙素原…" aria-label="检验指标搜索"><select id="lab-category" aria-label="检验指标分类"></select></div>
+      <p id="lab-filter-count" class="catalog-remaining"></p><div id="lab-list" class="clinical-list"></div>
+      <div class="reference-box"><h3>中国检验标准原文</h3><a href="https://www.nhc.gov.cn/wjw/s9492/202105/a85d8b64e0384c98aed8f3157860ee44.shtml" target="_blank" rel="noopener noreferrer">WS/T 779—2021 儿童血细胞分析参考区间 ↗</a><a href="https://www.nhc.gov.cn/wjw/s9492/202105/3d5159ef7619452b9842ea9520189a11.shtml" target="_blank" rel="noopener noreferrer">WS/T 780—2021 儿童临床常用生化检验项目参考区间 ↗</a></div>
+    </section>
+
+    <section class="page" id="page-exams" aria-label="儿童检查报告和生命体征解释">
+      <div class="page-title"><span class="eyebrow">PEDIATRIC EXAMS</span><h1>检查报告解读</h1><p>胸片、CT、超声、脑电、心电、肺功能、听力筛查、生长发育与生命体征。先理解报告术语，再结合患儿临床表现。</p></div>
+      <div class="warn-card"><strong>不是自动阅片或自动出诊断</strong><p>本功能只匹配检查报告中的术语并提供解释，不分析原始影像；不能凭“斑片影”“磨玻璃影”“QTc延长”等文字单独确定病原、严重程度或治疗。</p></div>
+
+      <div class="clinic-panel photo-import-panel" data-ocr-type="exams">
+        <h2>📷 拍照导入检查单（新增）</h2>
+        <p class="subtext">拍摄/选择去标识化报告，仅上传经裁切后的文字区域。OCR不读取X线、CT原始图像，不做自动阅片。</p>
+        <input type="file" class="ocr-file" accept="image/*" aria-label="选择检查报告照片">
+        <div class="ocr-image-panel hidden">
+          <div class="ocr-crop-controls"><label>左侧裁切 % <input class="ocr-crop-left" type="number" min="0" max="90" value="0"></label><label>右侧裁切 % <input class="ocr-crop-right" type="number" min="0" max="90" value="0"></label><label>顶部裁切 % <input class="ocr-crop-top" type="number" min="0" max="90" value="0"></label><label>底部裁切 % <input class="ocr-crop-bottom" type="number" min="0" max="90" value="0"></label></div>
+          <canvas class="ocr-preview" role="img" aria-label="核对即将上传的裁切图像"></canvas>
+          <p class="subtext">请检查预览中无姓名、二维码、条码、住院号、联系电话等标识。</p>
+          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已检查本次裁切图，仅含去标识化教学内容，同意上传至自建OCR</label>
+          <label>OCR访问码<input type="password" class="ocr-code" autocomplete="off" placeholder="OCR_ACCESS_CODE"></label>
+          <button class="primary-button ocr-start" type="button">仅本次上传并提取文字</button>
+        </div>
+        <div class="check-result ocr-status" role="status"></div>
+        <label>检查报告文字（编辑纠错后才能解释）</label>
+        <textarea class="ocr-text" rows="5" maxlength="9000" placeholder="OCR识别结果或手动粘贴文本…"></textarea>
+        <button class="outline-button ocr-extract" type="button">将人工确认的文字放入检查报告解读</button>
+        <div class="report-output ocr-candidates"></div>
+      </div>
+      <div class="clinic-panel"><h2>① 粘贴检查报告，识别术语</h2><label for="exam-text">报告所见或结论（仅匿名教学文字）</label><textarea id="exam-text" rows="5" maxlength="5000" placeholder="如：双肺斑片状阴影，局部肺实变，可见支气管充气征。"></textarea><div class="chart-actions"><button class="primary-button" id="exam-analyze" type="button">提取并解释术语</button><button class="outline-button" id="exam-example" type="button">示例检查单</button></div><div id="exam-output" class="report-output" aria-live="polite"></div></div>
+      <div class="section-heading"><h2>② 检查术语词典</h2><span id="exam-count"></span></div>
+      <div class="catalog-filter-row"><input type="search" id="exam-search" placeholder="胸片/超声/心电：输入术语" aria-label="检查术语搜索"><select id="exam-modality" aria-label="检查方式分类"></select></div>
+      <p id="exam-filter-count" class="catalog-remaining"></p><div id="exam-list" class="clinical-list"></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p><strong>学习提示</strong><br>儿童影像和生命体征受年龄、体型、胎龄、体位、检查方法影响；报告的“考虑”“可能”“不除外”并不等于确诊。词典条目为编辑性学习内容，尚未完成逐条专科审核。</p></div>
+    </section>
+
+    <section class="page" id="page-infusion" aria-label="静脉输液学习">
+      <div class="page-title"><span class="eyebrow">INFUSION SAFETY</span><h1>儿科静脉治疗学习</h1><p>覆盖输液指征、液体类别、静脉通路、药物复溶、配伍、输注浓度、速度换算和治疗监测。</p></div>
+      <div class="warn-card"><strong>输液安全红线</strong><p>本工具只帮助学习核对与计算“已确定的溶液体积/时间”。不会自动推荐具体输液方案、补钠速度、药品剂量或高危药配制；必须依照本院制度和具体药品说明书。</p></div>
+      <div class="clinic-panel"><h2>输液速率数学换算</h2><p class="subtext">示例：已核实医嘱要求把既定液体体积在既定时间内输完，换算输液泵mL/h；不代表该医嘱本身正确。</p>
+        <div class="two-cols"><div><label for="iv-volume">已确定的输注量（mL）</label><input id="iv-volume" type="number" step="any" min="0" placeholder="例如：100"></div><div><label for="iv-hours">医嘱输注时间（小时）</label><input id="iv-hours" type="number" step="any" min="0" placeholder="例如：2"></div></div>
+        <button id="iv-calc" type="button" class="primary-button">换算mL/h</button><div id="iv-output" class="check-result" aria-live="polite"></div>
+      </div>
+      <div class="clinic-panel" id="iv-review-panel"><h2>静脉用药核对练习（新增）</h2>
+        <p class="subtext">只检查教学情境中是否完成关键核对，不判断医嘱是否正确，也不提供具体输注浓度、配伍或给药处方。输入虚构药物名称，勿填写真实患者信息。</p>
+        <form id="iv-review-form"><label for="iv-drug-name">教学药名（通用名，允许留空）</label><input id="iv-drug-name" maxlength="80" placeholder="例如：注射用药物通用名称">
+        <label for="iv-age-group">适用年龄分组</label><select id="iv-age-group"><option value="">请选择</option><option value="newborn">新生儿（含胎龄/日龄差异）</option><option value="infant">29天–3个月</option><option value="child">3个月–不足12岁</option><option value="teen">12–17岁</option></select>
+        <div id="iv-check-items" class="iv-check-items"></div>
+        <button type="submit" class="primary-button">生成未核对事项清单</button></form><div id="iv-review-output" class="report-output" role="status"></div></div>
+      <div class="section-heading"><h2>静脉治疗专项</h2><span>14项安全核对</span></div><div id="infusion-list" class="clinical-list"></div>
+    </section>
+
+    <section class="page" id="page-chart" aria-label="病历书写质控">
+      <div class="page-title"><span class="eyebrow">MEDICAL RECORD REVIEW</span><h1>病历书写质控</h1><p>粘贴去标识化的教学病历，逐项检查国家规范的结构要求、内容缺失、逻辑矛盾和书写改进方向。</p></div>
+      <div class="privacy-tip"><strong>仅限教学、模拟与去标识化材料。</strong>默认在本机检查，不上传病历。请不要输入真实姓名、联系方式、身份证、住院号、精确地址或未经许可的患者病历。正式病历修改须在医院授权系统内留痕，由有资格医师审核签名。</div>
+      <form id="chart-form" class="clinic-panel">
+        <label for="chart-type">病历文书类型</label>
+        <select id="chart-type"><option value="admission">住院入院记录</option><option value="first">首次病程记录</option><option value="progress">日常病程记录</option><option value="outpatient">门（急）诊初诊记录</option></select>
+        <div class="two-cols"><div><label for="chart-admit">入院时间（可选）</label><input type="datetime-local" id="chart-admit"></div><div><label for="chart-write">书写时间（可选）</label><input type="datetime-local" id="chart-write"></div></div>
+        <label for="chart-text">粘贴拟审查的匿名病历全文</label>
+        <textarea id="chart-text" rows="13" maxlength="16000" placeholder="示例（虚构）：
+主诉：发热、咳嗽3天。
+现病史：患儿3天前起病……
+既往史：……
+体格检查：……
+初步诊断：……"></textarea>
+        <div class="chart-actions"><button type="submit" class="primary-button">本机检查病历</button><button type="button" id="chart-demo" class="outline-button">填入匿名教学示例</button></div>
+      </form>
+      <div id="chart-feedback" class="notice hidden" role="alert"></div>
+      <div id="chart-results" class="chart-results hidden" aria-live="polite"></div>
+      <div id="chart-ai-panel" class="clinic-panel hidden"><h2>AI辅助二次质控 · 可选</h2><p class="subtext">AI只能提出审阅建议，不构成医院审批或医学事实验证。必须先去标识化、同意发送，才能上传到配置的AI服务商。</p>
+        <label class="consent-line"><input type="checkbox" id="chart-ai-consent">我已逐项检查并去除所有可识别患者信息，同意把病历文本发送给第三方AI作学习审阅</label>
+        <label for="chart-ai-code">应用访问码</label><input id="chart-ai-code" type="password" autocomplete="off" maxlength="128" placeholder="服务器设置的APP_ACCESS_CODE">
+        <button type="button" class="primary-button" id="chart-ai-run">请求AI辅助质控</button><div id="chart-ai-result" class="check-result" aria-live="polite"></div>
+      </div>
+      <div class="clinic-panel"><h2>本地记录与备份</h2><div class="chart-actions"><button id="chart-secure-export" type="button" class="outline-button">加密导出病历学习记录</button><button id="chart-secure-import" type="button" class="outline-button">导入加密病历备份</button></div><p class="subtext">仅点击保存才存入当前设备的IndexedDB，不自动传往服务器。浏览器清理缓存可能删除资料；仅建议存储虚构教学病例。</p>
+        <div class="chart-actions"><button type="button" id="chart-save" class="outline-button">保存当前匿名教学记录</button><button type="button" id="chart-export" class="outline-button">导出本地记录JSON</button></div><div id="chart-history" class="chart-history"></div>
+      </div>
+      <div class="reference-box"><h3>国家规范原始来源</h3>
+        <a href="https://www.nhc.gov.cn/wjw/c100175/201002/b1bec53d90f243e0861529723f00221a.shtml" target="_blank" rel="noopener noreferrer">《病历书写基本规范》（2010）↗</a>
+        <a href="https://www.nhc.gov.cn/wjw/c100175/201702/90f3de8ae03d488cbddf509dc958f75b.shtml" target="_blank" rel="noopener noreferrer">《电子病历应用管理规范》（2017）↗</a>
+        <a href="https://www.nhc.gov.cn/wjw/c100175/201312/0430f5400b4e482b9a4d766f16ce1b55.shtml" target="_blank" rel="noopener noreferrer">《医疗机构病历管理规定（2013年版）》↗</a>
+      </div>
+    </section>
+
+    <section class="page" id="page-sim" aria-label="儿科全真模拟接诊">
+      <div class="page-title"><span class="eyebrow">VIRTUAL PATIENT · V1.3</span><h1>呼吸 · 消化 · 住院输液模拟</h1><p>随机虚构患儿 · 逐步问诊 · 查体与检查 · 选择诊断、用药、处置 · 病情复评 · 评分复盘。</p></div>
+      <div class="warn-card"><strong>教学模拟，非真实诊疗系统</strong><p>医学情节由固定虚构病例驱动，模拟时间和病情变化为教学脚本，不是经过临床验证的生理模型。标准答案与药品选择均未完成中国儿科专家逐例审校。禁止录入真实患者信息。</p></div>
+      <div class="clinic-panel" id="sim-start-panel"><h2>接诊室 · 随机抽取虚拟患儿</h2><div class="sim-filters"><div><label for="sim-filter">病例类型</label><select id="sim-filter"></select></div><div><label for="sim-difficulty">难度</label><select id="sim-difficulty"><option value="全部">全部</option><option value="基础">基础</option><option value="进阶">进阶</option><option value="高难">高难</option></select></div></div><p class="subtext" id="sim-count">正在载入病例…</p><button id="sim-start" type="button" class="primary-button">开始接诊 · 隐藏诊断</button><p class="subtext">不会提前显示正确答案。可在做完决策后查看评分、关键漏项和依据。</p></div>
+      <div id="sim-play" hidden>
+        <div class="clinic-panel sim-case"><div class="sim-case-top"><span id="sim-case-label"></span><strong id="sim-time">模拟接诊 +0分钟</strong></div><h2 id="sim-case-title"></h2><p id="sim-case-intro"></p><div class="sim-vitals" id="sim-vitals"></div><button id="sim-reroll" type="button" class="outline-button">重新抽取病例</button></div><div class="clinic-panel" id="sim-admission-panel" hidden><h2>住院病历 · 病程与输液医嘱</h2><p class="subtext">这是虚构的病房记录，含未完成核对的模拟医嘱。请先审核，不可照搬用于真实患者。</p><div id="sim-admission-record"></div><button type="button" id="sim-chart-audit" class="outline-button">将虚构入院记录送入病历质控训练</button></div>
+        <div class="clinic-panel"><h2>① 问诊 · 向家属/患儿提问</h2><div class="sim-options" id="sim-history-questions"></div><form id="sim-ask-form"><label for="sim-free-question">自由提问（离线关键词匹配）</label><div class="sim-inline"><input id="sim-free-question" maxlength="120" placeholder="例如：孩子尿量怎么样？"><button type="submit" class="outline-button">询问</button></div></form></div>
+        <div class="clinic-panel"><h2>② 查体 · 选择检查部位</h2><div class="sim-options" id="sim-exam"></div></div>
+        <div class="clinic-panel"><h2>③ 开检查 · 检查会推进模拟时间</h2><p class="subtext">检查结果只能在你选择后显示；不必要的检查会扣分。</p><div class="sim-options" id="sim-tests"></div></div>
+        <div class="clinic-panel"><h2>接诊日志</h2><div id="sim-transcript" class="sim-transcript" aria-live="polite"></div><button id="sim-reassess" type="button" class="outline-button">推进时间并复评病情（+10分钟）</button></div>
+        <div class="clinic-panel"><h2>④ 最可能诊断</h2><div id="sim-diagnosis" class="sim-choices"></div></div>
+        <div class="clinic-panel"><h2>⑤ 选择药品或药物策略（可多选）</h2><p class="subtext">教学选择不包含未经核验的儿童剂量与处方。选错高风险药物会影响评分。</p><div id="sim-drugs" class="sim-choices"></div></div>
+        <div class="clinic-panel" id="sim-iv-panel" hidden><h2>住院输液安全核对</h2><p class="subtext">完成你认为必要的核查步骤，并在提交后查看漏项。教学病例不自动生成可执行输液医嘱。</p><div id="sim-iv-checks" class="sim-choices"></div><h3>医嘱审核模拟 · 逐项判断</h3><p class="subtext">对每项拟议医嘱选择“通过”或“退回”，提交后显示正确判断及理由。</p><div id="sim-order-review"></div></div><div class="clinic-panel"><h2>⑥ 治疗措施与处置计划（可多选）</h2><p class="subtext">急诊病例应尽早采取必要处理；动作选择会记录模拟时间。</p><div id="sim-plans" class="sim-choices"></div><button id="sim-submit" type="button" class="primary-button">结束接诊 · 提交全部诊疗决策</button></div>
+      </div>
+      <div id="sim-feedback" class="clinic-panel" hidden><div id="sim-report" class="sim-report"></div><label for="sim-save-note">个人复盘笔记（可随报告导出）</label><textarea id="sim-save-note" maxlength="2000" rows="3" placeholder="本次遗漏了哪些重要病史？下一次准备如何处理？"></textarea><div class="chart-actions"><button id="sim-final-export" type="button" class="outline-button">导出本次报告</button><button id="sim-next" type="button" class="primary-button">下一位随机患儿</button></div></div>
+      <div class="clinic-panel"><h2>我的模拟学习记录</h2><p id="sim-history-count" class="subtext"></p><div id="sim-history-records" class="sim-history"></div><div class="chart-actions"><button id="sim-export-history" type="button" class="outline-button">导出评分历史</button><button id="sim-clear" type="button" class="outline-button">清空评分历史</button></div></div>
+    </section>
+
+    <section class="page" id="page-quiz" aria-label="儿科循证病例模拟练习">
+      <div class="page-title"><span class="eyebrow">EVIDENCE-BASED STUDY</span><h1>循证病例 · 练习与复盘</h1><p>按中国国家诊疗规范练习鉴别诊断、治疗原则、检验解释、病历书写和医学隐私。所有题目为教学拟题，未经过专家逐题审核。</p></div>
+      <div class="warn-card"><strong>教学题，不是临床决策工具</strong><p>答案只是针对题设条件的规范学习总结。实际诊疗需结合患儿情况、现行指南和带教医师审核；本库不自动生成药品处方。</p></div>
+      <div class="clinic-panel"><div class="two-cols"><div><label for="quiz-category">练习领域</label><select id="quiz-category"><option value="all">全部领域</option></select></div><div><label for="quiz-mode">练习模式</label><select id="quiz-mode"><option value="all">全部题目</option><option value="wrong">仅复习错题</option></select></div></div>
+      <div class="chart-actions"><button type="button" id="quiz-restart" class="primary-button">开始 / 重置练习</button><button type="button" id="quiz-clear" class="outline-button">清除本机练习进度</button></div><div id="quiz-info" class="check-result" role="status"></div><div id="quiz-work" class="quiz-work"></div></div>
+      <div class="reference-box"><h3>题目参考依据</h3><p>每题可点开来源原文。题目为概括性教学表达，不等于原文的逐字重现；如有疑问以原文和最新专家共识为准。</p><button type="button" class="outline-button" data-page="evidence">打开证据来源和内容审校看板</button></div>
+    </section>
+
+    <section class="page" id="page-evidence" aria-label="医学证据与质量审计">
+      <div class="page-title"><span class="eyebrow">MEDICAL DATA QUALITY</span><h1>来源 · 内容覆盖 · 审校状态</h1><p>明确区分权威原始材料、编辑整理内容、AI生成建议和第三方药品数据。来源存在，不代表每一句话都经过专家审定。</p></div>
+      <div class="clinic-panel"><h2>当前内容质量概况</h2><div id="evidence-stats" class="evidence-stats"></div><div id="evidence-policy" class="subtext"></div></div>
+      <div class="chart-actions"><button type="button" class="primary-button" data-page="audit">打开逐条审校工作台 ›</button></div>
+      <div class="section-heading"><h2>权威来源索引</h2><span>点击打开公开原文</span></div><div id="evidence-list" class="clinical-list"></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p><strong>本版验收边界</strong><br>代码自动化测试验证程序行为，不代替临床专家对诊断与用药的逐条审查。无中国说明书授权及专家复核前，药物剂量不标记为临床可用。</p></div>
+    </section>
+
+    <section class="page" id="page-audit" aria-label="中国儿科医学逐条证据审校工作台">
+      <div class="page-title"><span class="eyebrow">EVIDENCE TRACEABILITY · V1.1</span><h1>医学逐条审校</h1><p>把疾病诊疗、化验解释、影像术语、输液安全和学习题分解为可追溯条目，列出证据缺口并安排人工复核。</p></div>
+      <div class="warn-card"><strong>尚未完成医学专家签审</strong><p>本页只追踪内容与来源之间的关联、优先级和待审工作；不把附有链接的文本标为医学正确。不得用作真实患者的处方或诊断决策。</p></div>
+      <div class="clinic-panel"><h2>当前审计概况</h2><div id="audit-stats" class="evidence-stats" role="status">正在载入审计数据…</div>
+        <div class="chart-actions"><a class="outline-button" href="/api/audit/export" download>下载全部逐条审核底稿（CSV）</a><button type="button" class="outline-button" id="audit-reset">清除筛选</button></div>
+      </div>
+      <div class="clinic-panel"><h2>逐条检索与筛查</h2>
+        <div class="catalog-filter-row"><input type="search" id="audit-query" class="study-keyword" placeholder="搜索病名、检验项目、文字或条目ID" aria-label="搜索医学审校条目"><select id="audit-kind" aria-label="审核分类"><option value="">全部分类</option><option>诊疗路径</option><option>基础专题</option><option>化验指标</option><option>检查术语</option><option>输液安全</option><option>循证练习题</option></select></div>
+        <div class="catalog-filter-row"><select id="audit-priority" aria-label="风险级别"><option value="">所有优先级</option><option value="P0">P0 临床高风险</option><option value="P1">P1 专科优先</option><option value="P2">P2 常规</option></select><label class="consent-line"><input type="checkbox" id="audit-missing">只看缺少独立来源的内容</label></div>
+        <p id="audit-count" class="subtext" role="status"></p><div id="audit-list" class="clinical-list"></div>
+        <div class="chart-actions"><button type="button" id="audit-more" class="outline-button">加载下一页</button></div>
+      </div>
+      <div class="reference-box"><h3>审核流程和数据授权</h3><p>引用入口 → 定位到页码/章节 → 比对原文 → 医师/药师审核 → 留痕签审 → 发布。此原型不包含对外开放的“审核通过”接口，以免匿名访问者擅自更改医疗审核状态。</p>
+       <a href="https://open.bcpmdata.com/api/173.html" target="_blank" rel="noopener noreferrer">摩熵数科说明书API文档 ↗</a>
+       <a href="https://datasearch.nmpa.gov.cn/" target="_blank" rel="noopener noreferrer">国家药监局公开药品查询 ↗</a></div>
+    </section>
+
+    <section class="page" id="page-verify" aria-label="批准文号核验">
+      <div class="page-title"><span class="eyebrow">DRUG REGISTRATION</span><h1>官方药品核验</h1><p>先用第三方资料辅助定位药品，再到国家药监局官方页面核对批准文号和注册信息。</p></div>
+      <div class="verify-steps">
+        <div class="verify-step"><span>01</span><div><strong>确认准确药名</strong><p>区别通用名、商品名、注射剂与口服剂。</p></div></div>
+        <div class="verify-step"><span>02</span><div><strong>核对批准文号与厂家</strong><p>查询结果的批准文号仅供定位，不能视为官方已核验。</p></div></div>
+        <div class="verify-step"><span>03</span><div><strong>跳转国家药监局官网</strong><p>在官网中手工输入药名或批准文号，核查产品记录与实际药盒说明书。</p></div></div>
+      </div>
+      <div class="official-panel"><div class="official-heading"><span class="official-icon">国</span><div><strong>国家药品监督管理局</strong><small>官方公开药品数据查询</small></div></div>
+        <label for="verify-keyword">准备查询的药名或批准文号</label>
+        <div class="verify-input-row"><input id="verify-keyword" type="search" placeholder="例如：国药准字H……" autocomplete="off" maxlength="60"><button id="verify-copy" type="button">复制</button></div>
+        <a class="official-primary" id="verify-official-link" href="https://datasearch.nmpa.gov.cn/" target="_blank" rel="noopener noreferrer">打开国家药监局官网 ↗</a>
+        <p class="official-foot">国家药监局尚未提供本项目可用的公开药品检索 API；按钮打开的是其官方查询网站，并不会把这里的搜索词自动提交到官网。</p>
+      </div>
+      <form id="approval-form" class="approval-form"><h2>批文索引辅助检索</h2><p>该功能需要单独取得摩熵“中国药品批文库”API权限；返回结果是第三方资料，不是国家药监局实时认证。</p>
+        <div class="search-input-wrap"><span class="glass">⌕</span><input id="approval-keyword" type="search" placeholder="输入通用药名或批准文号" maxlength="60" required><button type="submit">检索</button></div>
+      </form>
+      <div class="notice hidden" id="approval-notice" role="status"></div>
+      <div id="approval-results"></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p><strong>核验状态区分</strong><br>第三方记录匹配、官方注册信息核实、药品说明书版本核实是三个独立步骤。软件不能仅凭药名一致即认定所有信息已核验。</p></div>
+    </section>
+
+    <section class="page" id="page-calc" aria-label="剂量练习">
+      <div class="page-title"><span class="eyebrow">DOSAGE PRACTICE</span><h1>儿童剂量换算</h1><p>纯数学练习。剂量标准必须先从已核验的说明书或指南中取得。</p></div>
+      <div class="warn-card"><strong>不是自动推荐剂量</strong><p>本工具不会根据药品名称选择给药方案，不考虑新生儿、肝肾功能、适应证、给药途径、稀释液及输注速度。切勿直接用于开医嘱。</p></div>
+      <form class="calc-form" id="calc-form">
+        <div class="field"><label for="calc-weight">患儿体重（kg）</label><input type="number" id="calc-weight" min="0.1" max="300" step="any" inputmode="decimal" placeholder="如 16" required></div>
+        <div class="field"><label for="calc-type">输入剂量类型</label><select id="calc-type"><option value="per-dose">mg/kg/次</option><option value="per-day">mg/kg/日</option></select></div>
+        <div class="field"><label for="calc-rate">参考剂量（mg/kg）</label><input type="number" id="calc-rate" min="0.001" max="10000" step="any" inputmode="decimal" placeholder="从已核验来源输入" required></div>
+        <div class="field"><label for="calc-times">每日给药次数</label><select id="calc-times"><option value="1">1次</option><option value="2">2次</option><option value="3">3次</option><option value="4">4次</option><option value="6">6次</option></select></div>
+        <div class="field"><label for="calc-max">单次剂量上限（mg）</label><input type="number" id="calc-max" min="0.001" step="any" inputmode="decimal" placeholder="必须人工填入经过核验的上限" required></div>
+        <button type="submit" class="primary-button">计算学习结果</button>
+      </form>
+      <div class="calc-output hidden" id="calc-output" aria-live="polite"></div>
+      <p class="footnote">如果尚未查到适用年龄、病原和最大剂量，请不要用本计算器推算实际治疗量。</p>
+    </section>
+
+
+    <section class="page" id="page-admin" aria-label="管理员密钥管理中心">
+      <div class="page-title"><span class="eyebrow">SECURE API SETTINGS</span><h1>API 密钥管理中心</h1><p>DeepSeek V4.1 Flash · 天聚数行 · 摩熵数科。管理员登录后才能保存、删除和测试密钥。</p></div>
+      <div class="privacy-tip">🔒 密钥通过 HTTPS 提交到服务器，使用 AES 加密文件保存，页面不读取或回显已有密钥。管理员密码与加密主密钥必须在服务器配置。切勿使用真实患者资料测试。</div>
+      <div id="admin-available" class="status-bar">正在检查管理员功能…</div>
+      <form id="admin-login" class="clinic-panel hidden" autocomplete="off">
+        <h2>管理员登录</h2><label for="admin-password">管理员密码</label>
+        <input id="admin-password" type="password" autocomplete="off" minlength="16" maxlength="512" required placeholder="输入部署时设定的管理员密码">
+        <button type="submit" class="primary-button">登录管理中心</button>
+      </form>
+      <div id="admin-panel" class="hidden">
+        <div class="clinic-panel"><h2>AI 模型</h2><p>DeepSeek V4.1 Flash（官方模型调用ID：<code>deepseek-flash</code>）。问答与病历质控共用此模型。</p><p class="footnote">目前调用目标为 DeepSeek 官方API，连接测试会产生少量真实API用量。</p></div>
+        <div id="admin-service-list"></div>
+        <div class="chart-actions"><button id="admin-refresh" type="button" class="outline-button">刷新连接配置</button><button id="admin-logout" type="button" class="outline-button">退出管理员</button></div>
+      </div>
+      <div id="admin-feedback" class="notice hidden" role="status" aria-live="polite"></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p>管理功能仅用于你控制的私有服务器。必须启用 HTTPS、设置强管理员密码和独立的加密主密钥，并定期备份密钥库。已配置不等于已经通过远端连接测试。</p></div>
+    </section>
+
+    <section class="page" id="page-favs" aria-label="收藏">
+      <div class="page-title"><span class="eyebrow">FAVORITES</span><h1>我的收藏</h1><p>仅保存药品查询名称，方便下次检索；不在本地长期保存可能过时的说明书剂量。</p></div>
+      <div id="fav-list"></div>
+      <div class="reference-box"><h3>说明书阅读顺序</h3><p>核实批准文号及厂家 → 剂型与规格 → 适应证 → 儿童用法用量 → 禁忌及注意事项 → 肝肾功能与监测 → 说明书修订日期。</p></div>
+    </section>
+
+    <section class="page" id="page-detail" aria-label="说明书详情">
+      <div class="detail-header"><button id="detail-back" class="back-button" type="button">‹ 返回</button><button id="detail-fav" class="save-button" type="button">☆ 收藏</button></div>
+      <div class="detail-main"><span class="eyebrow">DRUG MONOGRAPH</span><h1 id="detail-name">药品名称</h1><div class="meta-pills"><span class="pill" id="detail-source"></span><span class="pill caution">第三方资料·未官方核验</span></div><div id="detail-meta" class="detail-meta"></div></div>
+      <div class="warning-inline">仅供医学学习。不得依据第三方数据直接对患儿实施给药。缺失的年龄限制、剂量上限、厂家信息必须进一步核实。</div>
+      <div class="detail-links"><button type="button" id="detail-verify" class="detail-verify-button">核对批文 / 官网核验 ↗</button><a id="detail-source-link" href="#" target="_blank" rel="noopener noreferrer">查看数据来源 ↗</a></div>
+      <div class="section-heading"><h2>说明书内容</h2><span id="detail-section-count"></span></div>
+      <div id="detail-sections"></div>
+    </section>
+    <section class="secure-panel clinic-panel" id="secure-panel" hidden>
+      <h2>本机加密备份（AES-256-GCM）</h2><p id="secure-message" class="subtext">仅对导出的备份文件加密，本地浏览器数据库并非由本功能加密。</p>
+      <label for="secure-pass">备份口令（至少12个字符，忘记无法恢复）</label><input type="password" id="secure-pass" maxlength="200" autocomplete="new-password">
+      <label for="secure-pass-confirm">再次输入口令（导出时使用）</label><input type="password" id="secure-pass-confirm" maxlength="200" autocomplete="new-password">
+      <input type="file" id="secure-file" accept="application/json,.json" hidden>
+      <div class="chart-actions"><button id="secure-continue" class="primary-button" type="button">确认操作</button><button id="secure-cancel" type="button" class="outline-button">取消</button></div><div id="secure-feedback" role="status" class="subtext"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="主要功能">
+    <button type="button" class="nav-item active" data-page="search"><span class="nav-icon">⌕</span><span>查药</span></button>
+    <button type="button" class="nav-item" data-page="study"><span class="nav-icon">▤</span><span>学习</span></button>
+    <button type="button" class="nav-item" data-page="ask"><span class="nav-icon">✳</span><span>提问</span></button>
+    <button type="button" class="nav-item" data-page="notes"><span class="nav-icon">◷</span><span>记录</span></button>
+    <button type="button" class="nav-item" data-page="chart"><span class="nav-icon">☷</span><span>病历</span></button>
+    <button type="button" class="nav-item" data-page="tools"><span class="nav-icon">⚙</span><span>工具</span></button>
+  </nav>
+</div>
+</body>
+</html>
