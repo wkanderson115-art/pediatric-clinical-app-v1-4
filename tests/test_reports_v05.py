@@ -50,7 +50,7 @@ def test_frontend_has_report_features_and_preserves_previous_modules():
     assert 'reportUnit!==t.unit' in js
     assert "cl('lab-low').value=''" in js
     assert 'reviewed' not in js or 'reviewed' in js
-    assert 'pediatric-cn-shell-v1.4.0' in (BASE/'web/sw.js').read_text()
+    assert 'pediatric-cn-shell-v1.4.1-direct' in (BASE/'web/sw.js').read_text()
 
 def test_static_and_api_catalog_content_equal():
     d1=json.loads((BASE/'data/clinical_extension.json').read_text())

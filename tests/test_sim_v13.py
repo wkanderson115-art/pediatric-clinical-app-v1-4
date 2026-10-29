@@ -73,5 +73,5 @@ def test_v13_screen_and_cache_ids():
         assert f'id="{name}"' in h
     assert 'points.orderReview' in js
     assert "s.orderReviews[x.id]" in js
-    assert 'pediatric-cn-shell-v1.4.0' in sw
+    assert 'pediatric-cn-shell-v1.4.1-direct' in sw
     assert '<span class="version">V1.4</span>' in h

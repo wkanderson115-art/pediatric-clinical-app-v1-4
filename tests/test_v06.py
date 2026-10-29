@@ -53,7 +53,7 @@ def test_ocr_in_browser_files_and_offline_precautions():
     assert html.count('data-ocr-type=')==2
     assert 'ocr-consent' in html and 'ocr-preview' in html
     assert 'ocr/crop' not in js
-    assert "fd.append('consent','yes')" in js
+    assert '当前为 API 直连版，未配置自建 OCR 后端，因此不会上传图片' in js
     assert "canvas.toBlob" in js
     assert 'OCR可能' in (ROOT/'app/main.py').read_text()
     assert 'photo-ocr.js' in (ROOT/'web/sw.js').read_text()
