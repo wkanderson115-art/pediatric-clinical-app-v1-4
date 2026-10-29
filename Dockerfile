@@ -7,6 +7,9 @@ COPY app app
 COPY data data
 COPY docs docs
 COPY web web
+COPY asset_parts asset_parts
+COPY tools tools
+RUN python tools/rebuild_large_assets.py
 RUN mkdir -p /srv/private && chmod 700 /srv/private
 VOLUME ["/srv/private"]
 ENV PYTHONUNBUFFERED=1

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "data/medical_audit.json",
+      "size": 2083869,
+      "sha256": "1cae4936d99c649e7cbe6536869d3d3d093b5635c9fe7bd4881a4ab6dafe4ce5",
+      "parts": [
+        "asset_parts/data__medical_audit.json.part001",
+        "asset_parts/data__medical_audit.json.part002",
+        "asset_parts/data__medical_audit.json.part003",
+        "asset_parts/data__medical_audit.json.part004",
+        "asset_parts/data__medical_audit.json.part005",
+        "asset_parts/data__medical_audit.json.part006"
+      ]
+    },
+    {
+      "path": "data/simulation_cases.json",
+      "size": 1101611,
+      "sha256": "09de0251718231b48681e2812982181d95b0ede1917f5acb6372014b95cdd2ae",
+      "parts": [
+        "asset_parts/data__simulation_cases.json.part001",
+        "asset_parts/data__simulation_cases.json.part002",
+        "asset_parts/data__simulation_cases.json.part003"
+      ]
+    },
+    {
+      "path": "web/simulation_cases.json",
+      "size": 1101611,
+      "sha256": "09de0251718231b48681e2812982181d95b0ede1917f5acb6372014b95cdd2ae",
+      "parts": [
+        "asset_parts/web__simulation_cases.json.part001",
+        "asset_parts/web__simulation_cases.json.part002",
+        "asset_parts/web__simulation_cases.json.part003"
+      ]
+    },
+    {
+      "path": "docs/医学逐条审核底稿.csv",
+      "size": 718927,
+      "sha256": "e92fd928279f0366b3fdc96e28ba0d026e95637801809b7e9ec50a689593d657",
+      "parts": [
+        "asset_parts/docs__医学逐条审核底稿.csv.part001",
+        "asset_parts/docs__医学逐条审核底稿.csv.part002"
+      ]
+    },
+    {
+      "path": "V0.3_iPhone四屏模拟预览.png",
+      "size": 707104,
+      "sha256": "ab21c4d79aacc2c663762d8845c2e4d32a2defcc0245b3b4567a4428c9a73d91",
+      "parts": [
+        "asset_parts/V0.3_iPhone四屏模拟预览.png.part001",
+        "asset_parts/V0.3_iPhone四屏模拟预览.png.part002"
+      ]
+    }
+  ]
+}
