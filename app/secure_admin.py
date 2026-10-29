@@ -235,8 +235,8 @@ async def test_connection(payload: CheckPayload, request: Request):
         raise HTTPException(503, '尚未保存此接口的密钥。')
     now = time.monotonic()
     with _lock:
-        last = _last_checks.get(service, 0)
-        if now - last < 30:
+        last = _last_checks.get(service)
+        if last is not None and now - last < 30:
             raise HTTPException(429, '30秒内最多检测一次。')
         _last_checks[service] = now
     try:
