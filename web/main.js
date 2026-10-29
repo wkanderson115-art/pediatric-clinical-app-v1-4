@@ -39,10 +39,10 @@ function renderTopics(){const home=$('home-topics'),list=$('study-topics');topic
   const button=make('button',{type:'button',className:'topic-card'});button.append(make('span',{className:'topic-icon'},t.icon),make('strong',{},t.name),make('small',{},t.sub));button.addEventListener('click',()=>{setPage('study');const c=document.querySelectorAll('.study-card')[i];c?.scrollIntoView({behavior:'smooth',block:'start'})});home.append(button);
   const card=make('article',{className:'study-card'});card.append(make('h3',{},t.icon+' '+t.name),make('p',{className:'subtitle'},t.sub));const ul=make('ul');t.points.forEach(x=>ul.append(make('li',{},x)));card.append(ul);list.append(card);
 })}
-async function apiStatus(){try{const res=await fetch('/api/status',{cache:'no-store'});const data=await res.json();const el=$('api-status');if(data.connected){el.className='status-bar connected';el.textContent='● 已配置 '+(data.provider==='moseng'?'摩熵数科':'天聚数行')+' 说明书接口 · 不代表实时连通或官方核验'}else{el.className='status-bar offline';el.textContent='○ 尚未配置在线API · 可使用官方核验入口、临床学习及数学练习'}}catch{$('api-status').className='status-bar offline';$('api-status').textContent='○ 当前无法连接后端 · 请检查服务是否启动'}}
+function apiStatus(){const data=DirectAPI.status(),node=$('api-status');if(data.drug){node.className='status-bar connected';node.textContent='● 已填写 '+(data.provider==='moseng'?'摩熵数科':'天聚数行')+' Key · 将由本设备直连，结果仍需官方核验'}else{node.className='status-bar offline';node.textContent='○ 尚未填写药品数据 Key · 请到“工具 → API直连设置”填写'}}
 function showLoading(){$('results-block').classList.remove('hidden');$('search-results').replaceChildren(make('div',{className:'empty'},'正在查询中国药品资料…'));$('result-count').textContent='';$('load-more').classList.add('hidden')}
 async function searchDrugs(query,page=1){query=query.trim();if(query.length<2){showNotice('药名至少输入两个字符。');return}hideNotice();if(page===1){currentKeyword=query;currentPage=1;searchItems=[];showLoading()}else{$('load-more').disabled=true;$('load-more').textContent='正在加载…'}
- try{const res=await fetch(`/api/search?q=${encodeURIComponent(query)}&page=${page}`,{cache:'no-store'});let d={};try{d=await res.json()}catch{}if(!res.ok){throw Error(d.detail||'查询失败，请检查网络')}const items=Array.isArray(d.items)?d.items:[];searchItems=page===1?items:searchItems.concat(items);currentPage=page;renderResults();$('load-more').classList.toggle('hidden',items.length<10);}
+ try{const d=await DirectAPI.search(query,page);const items=Array.isArray(d.items)?d.items:[];searchItems=page===1?items:searchItems.concat(items);currentPage=page;renderResults();$('load-more').classList.toggle('hidden',items.length<10);}
  catch(e){if(page===1){$('search-results').replaceChildren(make('div',{className:'empty'},'没有可显示的结果'));}showNotice(e.message||'查询失败。')}
  finally{$('load-more').disabled=false;$('load-more').textContent='查看更多'}
 }
@@ -97,10 +97,7 @@ async function lookupApprovals(e){
  if(q.length<2){showApprovalNotice('药名或批准文号至少输入2个字符。');return}
  const root=$('approval-results');root.replaceChildren(make('div',{className:'empty'},'正在查询授权的第三方批文数据源…'));
  try{
-  const response=await fetch('/api/approvals?q='+encodeURIComponent(q),{cache:'no-store'});
-  const data=await response.json();
-  if(!response.ok)throw Error(data.detail||'批文索引检索暂时不可用');
-  showApprovalResults(Array.isArray(data.items)?data.items:[])
+  showApprovalResults(await DirectAPI.approvals(q))
  }catch(err){root.replaceChildren();showApprovalNotice(err.message||'批文查询失败，请使用官方查询入口。')}
 }
 $('home-verify').addEventListener('click',()=>populateVerify($('drug-keyword').value));

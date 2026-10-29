@@ -58,13 +58,8 @@ function openLearningTopic(id){
 }
 async function loadLearning(){
  let data;
- try{
-   const resp=await fetch('/api/learning',{cache:'no-store'});
-   if(!resp.ok)throw Error('server not configured');data=await resp.json();learningState.source='api';
- }catch{
-   try{const resp=await fetch('/learning.json');if(!resp.ok)throw Error('no static library');data=await resp.json();learningState.source='local static'}
-   catch{$('library-counter').textContent='无法加载完整知识库：请检查部署或网络';return}
- }
+ try{const resp=await fetch('/learning.json',{cache:'no-store'});if(!resp.ok)throw Error('no static library');data=await resp.json();learningState.source='local static'}
+ catch{$('library-counter').textContent='无法加载完整知识库：请检查部署或网络';return}
  if(!data||!Array.isArray(data.systems)){$('library-counter').textContent='学习库格式错误';return}
  learningState.systems=data.systems;
  const home=$('home-topics');home.replaceChildren();
@@ -151,8 +146,14 @@ async function submitQuestion(e){
  let result;
  let failure='';
  try{
-  const res=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json','X-App-Access':mode==='ai'?$('ai-code').value:''},cache:'no-store',body:JSON.stringify({question,mode,consent_external:consent})});
-  const data=await res.json();if(!res.ok)throw Error(data.detail||'检索失败');result=data;
+  if(mode==='local')result=localOfflineSearch(question);
+  else{
+   const answer=await DirectAPI.deepseek([
+    {role:'system',content:'你是儿科临床学习助手。仅作教学审阅，不作诊断或处方。用中文回答，明确不确定性、危险征象和需由执业医生核验的事项。'},
+    {role:'user',content:question}
+   ]);
+   result={mode:'ai',answer,matches:[],evidence:'DeepSeek 直连生成，未经过医生复核',external_sent:true};
+  }
  }catch(err){
   failure=String(err.message||'请求未完成');
   // Only local mode may fall back to locally bundled knowledge; NEVER silently replace the user's explicit AI request.
@@ -240,8 +241,5 @@ $('notes-export').addEventListener('click',exportNotes);
 $('notes-import-btn').addEventListener('click',()=>$('notes-import').click());
 $('notes-import').addEventListener('change',importNotes);
 document.querySelector('[data-page="notes"]').addEventListener('click',()=>renderNotes());
-$('ai-status').textContent='AI需要服务器API密钥与应用访问码；未配置时仍可使用本地检索。';
-fetch('/api/status',{cache:'no-store'}).then(r=>r.json()).then(d=>{
- $('ai-status').textContent=d.ai_ready?'已配置AI密钥（不代表已通过连接测试）；请先匿名化。':'尚未配置AI密钥；可使用本地知识库并保存。';
-}).catch(()=>{});
+$('ai-status').textContent=DirectAPI.status().ai?'已在本设备填写 DeepSeek Key；请先匿名化。':'尚未填写 DeepSeek Key；可使用本地知识库并保存。';
 loadLearning();

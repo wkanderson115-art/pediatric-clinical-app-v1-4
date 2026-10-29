@@ -13,6 +13,7 @@
 <link rel="icon" href="/icon-192.png">
 <title>儿科临床药典</title>
 <link rel="stylesheet" href="/style.css">
+<script defer src="/direct-api.js"></script>
 <script defer src="/main.js"></script>
 <script defer src="/learning.js"></script>
 <script defer src="/clinical.js"></script>
@@ -77,7 +78,7 @@
         <label for="ask-tag">归类（方便以后复习）</label>
         <select id="ask-tag"><option value="疑难病例">疑难病例</option><option value="呼吸系统">呼吸系统</option><option value="消化系统">消化系统</option><option value="泌尿与肾脏">泌尿与肾脏</option><option value="过敏与免疫">过敏与免疫</option><option value="儿科临床药学">临床用药</option><option value="儿科急诊与重症">急诊重症</option><option value="其他">其他</option></select>
         <div class="ask-switch" role="group" aria-label="回答方式"><label><input type="radio" name="ask-mode" value="local" checked>本地知识库 · 不上传</label><label><input type="radio" name="ask-mode" value="ai">AI辅助分析 · 需授权</label></div>
-        <div id="ai-consent-box" class="ai-consent hidden"><label><input id="ai-consent" type="checkbox">我已去除可识别患者信息，并同意将这个问题发送给已配置的第三方AI服务商。</label><label for="ai-code">AI访问码（由软件部署者设定，不是AI API Key）</label><input type="password" id="ai-code" maxlength="128" autocomplete="off" placeholder="输入服务端APP_ACCESS_CODE"><small id="ai-status">正在检查AI配置…</small></div>
+        <div id="ai-consent-box" class="ai-consent hidden"><label><input id="ai-consent" type="checkbox">我已去除可识别患者信息，并同意将这个问题发送给已配置的第三方AI服务商。</label><small id="ai-status">正在检查 AI 设置…</small><p class="subtext">请先在“工具 → API直连设置”填写 DeepSeek API Key；本页不再需要应用访问码。</p></div>
         <button id="ask-submit" type="submit" class="primary-button">检索并保存学习记录</button>
       </form>
       <div id="ask-feedback" class="notice hidden" role="status"></div>
@@ -127,10 +128,9 @@
         <div class="ocr-image-panel hidden">
           <div class="ocr-crop-controls"><label>左侧裁切 % <input class="ocr-crop-left" type="number" min="0" max="90" value="0"></label><label>右侧裁切 % <input class="ocr-crop-right" type="number" min="0" max="90" value="0"></label><label>顶部裁切 % <input class="ocr-crop-top" type="number" min="0" max="90" value="0"></label><label>底部裁切 % <input class="ocr-crop-bottom" type="number" min="0" max="90" value="0"></label></div>
           <canvas class="ocr-preview" role="img" aria-label="只包含选择的裁切区域，检查是否含可识别信息"></canvas>
-          <p class="subtext">预览图是将被传输的实际裁切区域。若仍含姓名等身份信息，请修改裁切或不要上传。</p>
-          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已核对预览图，并确认只包含虚构或充分去标识化的教学资料；同意本次图片发送到自建OCR服务</label>
-          <label>OCR访问码（由部署者设置）<input type="password" class="ocr-code" autocomplete="off" placeholder="OCR_ACCESS_CODE"></label>
-          <button class="primary-button ocr-start" type="button">仅本次上传并提取文字</button>
+          <p class="subtext">直连版不上传图片。请确认预览中没有身份信息，再使用 iPhone“实况文本”识别裁切区域。</p>
+          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已核对预览图，并确认只包含虚构或充分去标识化的教学资料</label>
+          <button class="primary-button ocr-start" type="button">提示使用实况文本</button>
         </div>
         <div class="check-result ocr-status" role="status"></div>
         <label>OCR识别文本（可编辑，请对照原图修正）</label>
@@ -166,9 +166,8 @@ MP_PCR | 未检出 | 定性 | - | -"></textarea>
           <div class="ocr-crop-controls"><label>左侧裁切 % <input class="ocr-crop-left" type="number" min="0" max="90" value="0"></label><label>右侧裁切 % <input class="ocr-crop-right" type="number" min="0" max="90" value="0"></label><label>顶部裁切 % <input class="ocr-crop-top" type="number" min="0" max="90" value="0"></label><label>底部裁切 % <input class="ocr-crop-bottom" type="number" min="0" max="90" value="0"></label></div>
           <canvas class="ocr-preview" role="img" aria-label="核对即将上传的裁切图像"></canvas>
           <p class="subtext">请检查预览中无姓名、二维码、条码、住院号、联系电话等标识。</p>
-          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已检查本次裁切图，仅含去标识化教学内容，同意上传至自建OCR</label>
-          <label>OCR访问码<input type="password" class="ocr-code" autocomplete="off" placeholder="OCR_ACCESS_CODE"></label>
-          <button class="primary-button ocr-start" type="button">仅本次上传并提取文字</button>
+          <label class="consent-line"><input type="checkbox" class="ocr-consent">我已检查本次裁切图，仅含去标识化教学内容</label>
+          <button class="primary-button ocr-start" type="button">提示使用实况文本</button>
         </div>
         <div class="check-result ocr-status" role="status"></div>
         <label>检查报告文字（编辑纠错后才能解释）</label>
@@ -219,7 +218,7 @@ MP_PCR | 未检出 | 定性 | - | -"></textarea>
       <div id="chart-results" class="chart-results hidden" aria-live="polite"></div>
       <div id="chart-ai-panel" class="clinic-panel hidden"><h2>AI辅助二次质控 · 可选</h2><p class="subtext">AI只能提出审阅建议，不构成医院审批或医学事实验证。必须先去标识化、同意发送，才能上传到配置的AI服务商。</p>
         <label class="consent-line"><input type="checkbox" id="chart-ai-consent">我已逐项检查并去除所有可识别患者信息，同意把病历文本发送给第三方AI作学习审阅</label>
-        <label for="chart-ai-code">应用访问码</label><input id="chart-ai-code" type="password" autocomplete="off" maxlength="128" placeholder="服务器设置的APP_ACCESS_CODE">
+        <p class="subtext">请先在“工具 → API直连设置”填写 DeepSeek API Key；本页不再需要应用访问码。</p>
         <button type="button" class="primary-button" id="chart-ai-run">请求AI辅助质控</button><div id="chart-ai-result" class="check-result" aria-live="polite"></div>
       </div>
       <div class="clinic-panel"><h2>本地记录与备份</h2><div class="chart-actions"><button id="chart-secure-export" type="button" class="outline-button">加密导出病历学习记录</button><button id="chart-secure-import" type="button" class="outline-button">导入加密病历备份</button></div><p class="subtext">仅点击保存才存入当前设备的IndexedDB，不自动传往服务器。浏览器清理缓存可能删除资料；仅建议存储虚构教学病例。</p>
@@ -270,7 +269,7 @@ MP_PCR | 未检出 | 定性 | - | -"></textarea>
       <div class="page-title"><span class="eyebrow">EVIDENCE TRACEABILITY · V1.1</span><h1>医学逐条审校</h1><p>把疾病诊疗、化验解释、影像术语、输液安全和学习题分解为可追溯条目，列出证据缺口并安排人工复核。</p></div>
       <div class="warn-card"><strong>尚未完成医学专家签审</strong><p>本页只追踪内容与来源之间的关联、优先级和待审工作；不把附有链接的文本标为医学正确。不得用作真实患者的处方或诊断决策。</p></div>
       <div class="clinic-panel"><h2>当前审计概况</h2><div id="audit-stats" class="evidence-stats" role="status">正在载入审计数据…</div>
-        <div class="chart-actions"><a class="outline-button" href="/api/audit/export" download>下载全部逐条审核底稿（CSV）</a><button type="button" class="outline-button" id="audit-reset">清除筛选</button></div>
+        <div class="chart-actions"><a class="outline-button" href="/medical_audit.json" download>下载全部逐条审核底稿（JSON）</a><button type="button" class="outline-button" id="audit-reset">清除筛选</button></div>
       </div>
       <div class="clinic-panel"><h2>逐条检索与筛查</h2>
         <div class="catalog-filter-row"><input type="search" id="audit-query" class="study-keyword" placeholder="搜索病名、检验项目、文字或条目ID" aria-label="搜索医学审校条目"><select id="audit-kind" aria-label="审核分类"><option value="">全部分类</option><option>诊疗路径</option><option>基础专题</option><option>化验指标</option><option>检查术语</option><option>输液安全</option><option>循证练习题</option></select></div>
@@ -320,22 +319,16 @@ MP_PCR | 未检出 | 定性 | - | -"></textarea>
     </section>
 
 
-    <section class="page" id="page-admin" aria-label="管理员密钥管理中心">
-      <div class="page-title"><span class="eyebrow">SECURE API SETTINGS</span><h1>API 密钥管理中心</h1><p>DeepSeek V4.1 Flash · 天聚数行 · 摩熵数科。管理员登录后才能保存、删除和测试密钥。</p></div>
-      <div class="privacy-tip">🔒 密钥通过 HTTPS 提交到服务器，使用 AES 加密文件保存，页面不读取或回显已有密钥。管理员密码与加密主密钥必须在服务器配置。切勿使用真实患者资料测试。</div>
-      <div id="admin-available" class="status-bar">正在检查管理员功能…</div>
-      <form id="admin-login" class="clinic-panel hidden" autocomplete="off">
-        <h2>管理员登录</h2><label for="admin-password">管理员密码</label>
-        <input id="admin-password" type="password" autocomplete="off" minlength="16" maxlength="512" required placeholder="输入部署时设定的管理员密码">
-        <button type="submit" class="primary-button">登录管理中心</button>
-      </form>
-      <div id="admin-panel" class="hidden">
-        <div class="clinic-panel"><h2>AI 模型</h2><p>DeepSeek V4.1 Flash（官方模型调用ID：<code>deepseek-flash</code>）。问答与病历质控共用此模型。</p><p class="footnote">目前调用目标为 DeepSeek 官方API，连接测试会产生少量真实API用量。</p></div>
+    <section class="page" id="page-admin" aria-label="API直连设置">
+      <div class="page-title"><span class="eyebrow">DIRECT API SETTINGS</span><h1>API 直连设置</h1><p>DeepSeek、天聚数行、摩熵数科由当前设备直接调用，无需后端。</p></div>
+      <div class="privacy-tip">⚠ Key 仅保存在当前设备浏览器存储中，不会上传到本项目服务器；但安装包所在设备的使用者可以访问它。请只填写自己的 Key，并设置服务商额度限制。</div>
+      <div id="admin-available" class="status-bar">本机 API 设置</div>
+      <div id="admin-panel">
         <div id="admin-service-list"></div>
-        <div class="chart-actions"><button id="admin-refresh" type="button" class="outline-button">刷新连接配置</button><button id="admin-logout" type="button" class="outline-button">退出管理员</button></div>
+        <div class="chart-actions"><button id="admin-refresh" type="button" class="outline-button">刷新本机配置</button><button id="admin-logout" type="button" class="outline-button">清除全部本机 Key</button></div>
       </div>
       <div id="admin-feedback" class="notice hidden" role="status" aria-live="polite"></div>
-      <div class="source-tip"><div class="tip-symbol">!</div><p>管理功能仅用于你控制的私有服务器。必须启用 HTTPS、设置强管理员密码和独立的加密主密钥，并定期备份密钥库。已配置不等于已经通过远端连接测试。</p></div>
+      <div class="source-tip"><div class="tip-symbol">!</div><p>直连模式依赖服务商的浏览器跨域策略。若某服务拒绝跨域请求，页面会明确提示；本地学习、病例练习和手工文字录入仍可使用。</p></div>
     </section>
 
     <section class="page" id="page-favs" aria-label="收藏">

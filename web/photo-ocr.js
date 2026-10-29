@@ -73,26 +73,12 @@ function analyzeCandidates(panel){
  out.append(btn);
 }
 async function uploadOne(panel){
- const state=states.get(panel),consent=$(panel,'.ocr-consent'),code=$(panel,'.ocr-code').value.trim(),btn=$(panel,'.ocr-start');
+ const state=states.get(panel),consent=$(panel,'.ocr-consent');
  if(!state?.img){updateStatus(panel,'请先选择报告图片。');return;}
- if(!consent.checked){updateStatus(panel,'未勾选本次去标识化图片上传同意，不会发送。');return;}
- if(code.length<8){updateStatus(panel,'请输入服务器设置的至少8位OCR访问码。');return;}
- try{
-  renderCrop(panel);btn.disabled=true;updateStatus(panel,'正在临时识别裁切图像…');
-  const jpeg=await canvasBlob($(panel,'.ocr-preview'));
-  if(jpeg.size>8_000_000)throw new Error('图片超过8MB，请继续裁切');
-  const fd=new FormData();fd.append('image',jpeg,'teaching_report.jpg');fd.append('consent','yes');fd.append('report_type',panel.dataset.ocrType);
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),40000);
-  let response;
-  try{response=await fetch('/api/ocr/recognize',{method:'POST',body:fd,headers:{'X-OCR-Access':code},cache:'no-store',signal:controller.signal});}
-  finally{clearTimeout(timer);}
-  let data;try{data=await response.json()}catch{data={};}
-  if(!response.ok)throw new Error(typeof data.detail==='string'?data.detail:'OCR服务未响应，请核对网络、权限和中文识别引擎');
-  $(panel,'.ocr-text').value=String(data.text||'').slice(0,9000);
-  updateStatus(panel,'已返回文字，未自动生成诊断。请人工核对原图；本次不自动储存或发送AI。');
-  $(panel,'.ocr-consent').checked=false;$(panel,'.ocr-code').value='';
- }catch(e){updateStatus(panel,e.name==='AbortError'?'OCR响应超时，请使用实况文本复制或手动填写。':(e.message||'无法识别'));}
- finally{btn.disabled=false;}
+ if(!consent.checked){updateStatus(panel,'请先勾选已确认图片不含身份信息。');return;}
+ renderCrop(panel);
+ updateStatus(panel,'当前为 API 直连版，未配置自建 OCR 后端，因此不会上传图片。请使用 iPhone“实况文本”提取裁切区域文字，粘贴到下方文本框后继续。');
+ $(panel,'.ocr-text').focus();
 }
 async function handleFile(panel,file){
  if(!file)return;

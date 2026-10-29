@@ -129,5 +129,19 @@ ch('chart-form').addEventListener('submit',e=>{e.preventDefault();ch('chart-feed
 ch('chart-demo').addEventListener('click',()=>{ch('chart-type').value='admission';ch('chart-admit').value='2026-10-20T09:00';ch('chart-write').value='2026-10-21T11:00';ch('chart-text').value='【以下为完全虚构的教学案例】\n性别：男，年龄：4岁。\n主诉：发热、咳嗽。\n现病史：3天前出现咳嗽，2天前发热，最高体温39.2℃。精神稍差，进食减少。否认发热。\n既往史：否认药物过敏史。曾有青霉素过敏。\n体格检查：体温39.2℃，可闻及湿啰音。\n初步诊断：肺炎。';ch('chart-results').classList.add('hidden');ch('chart-ai-panel').classList.add('hidden');ch('chart-feedback').classList.add('hidden')});
 ch('chart-save').addEventListener('click',async()=>{const t=ch('chart-text').value.trim();if(t.length<20){chartError('先写入匿名教学病历并运行本地检查。');return}if(containsPII(t)){chartError('检测到疑似直接身份信息，为保护隐私，暂不保存；请先彻底去标识化。');return}const type=ch('chart-type').value,admit=ch('chart-admit').value,write=ch('chart-write').value,rep=auditChart(t,type,admit,write);try{await chartStore('put',{id:(crypto.randomUUID?.()||('chart-'+Date.now())),type,docName:rep.docName,summary:rep.summary,text:t,admit,write,updated:new Date().toISOString()});await chartHistory();chartError('匿名教学病历已保存在此设备的IndexedDB。')}catch(e){chartError('保存失败：'+e.message)}});
 ch('chart-export').addEventListener('click',async()=>{try{const items=await chartStore('all');const payload=JSON.stringify({format:'pediatric-chart-study-v1',exported_at:new Date().toISOString(),items},null,2);const u=URL.createObjectURL(new Blob([payload],{type:'application/json;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='儿科匿名病历质控学习记录.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);chartError('已触发下载。JSON未加密，必须安全保存且不得包含患者身份信息。')}catch(e){chartError('导出失败：'+e.message)}});
-ch('chart-ai-run').addEventListener('click',async()=>{const t=ch('chart-text').value.trim();if(!currentReport||t.length<20){chartError('请先执行本机质控，再选择AI辅助。');return}if(containsPII(t)){chartError('检测到疑似身份标识，禁止向AI发送。');return}if(!ch('chart-ai-consent').checked){chartError('必须明确同意并确认已经去标识化。');return}const btn=ch('chart-ai-run');btn.disabled=true;btn.textContent='正在向AI请求辅助质控…';ch('chart-ai-result').textContent='';try{const r=await fetch('/api/chart-review',{method:'POST',headers:{'Content-Type':'application/json','X-App-Access':ch('chart-ai-code').value},cache:'no-store',body:JSON.stringify({note_text:t,doc_type:ch('chart-type').value,consent_external:true})});const x=await r.json();if(!r.ok)throw Error(x.detail||'请求失败');ch('chart-ai-result').textContent='AI生成 · 未经医师签审\n'+x.review+'\n\n来源依据：'+x.reference+'\n注意：AI未核实病例真实性，不能自动批准或签名。'}catch(e){ch('chart-ai-result').textContent='AI质控未完成：'+e.message+'。本机检查仍可用，未生成虚构的AI意见。'}finally{btn.disabled=false;btn.textContent='请求AI辅助质控'}});
+ch('chart-ai-run').addEventListener('click',async()=>{
+ const t=ch('chart-text').value.trim();
+ if(!currentReport||t.length<20){chartError('请先执行本机质控，再选择AI辅助。');return}
+ if(containsPII(t)){chartError('检测到疑似身份标识，禁止向AI发送。');return}
+ if(!ch('chart-ai-consent').checked){chartError('必须明确同意并确认已经去标识化。');return}
+ const btn=ch('chart-ai-run');btn.disabled=true;btn.textContent='正在直连 AI 请求辅助质控…';ch('chart-ai-result').textContent='';
+ try{
+  const review=await DirectAPI.deepseek([
+   {role:'system',content:'你是病历书写教学质控助手。仅给出去标识化教学文本的结构、缺项、逻辑和表述建议；不诊断、不下医嘱、不自动批准。中文输出，分点列出，并注明需要由执业医生审核。'},
+   {role:'user',content:'文书类型：'+ch('chart-type').value+'\n\n匿名教学病历：\n'+t}
+  ],2000);
+  ch('chart-ai-result').textContent='AI直连生成 · 未经医师签审\n'+review+'\n\n注意：AI未核实病例真实性，不能自动批准或签名。';
+ }catch(e){ch('chart-ai-result').textContent='AI质控未完成：'+e.message+'。本机检查仍可用，未生成虚构的AI意见。'}
+ finally{btn.disabled=false;btn.textContent='请求AI辅助质控'}
+});
 chartHistory().catch(()=>{});

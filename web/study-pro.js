@@ -9,11 +9,7 @@
  const putRecord=(r)=>{try{localStorage.setItem(localKey,JSON.stringify(r))}catch{el('quiz-info').textContent+='（当前浏览器未允许保存练习进度）'}};
  function linkFor(sourceId){return sources?.sources?.find(x=>x.id===sourceId)}
  function urls(identifiers,container){(identifiers||[]).forEach(id=>{let s=linkFor(id);if(!s)return;let a=node('a',s.title+' ↗');a.href=s.url;a.target='_blank';a.rel='noopener noreferrer';a.style.display='block';a.style.marginTop='6px';container.append(a)})}
- async function loadBundle(name){let last;
-  for(const url of ['/api/'+(name==='quiz_cases'?'study-quiz':'study-evidence'),'/'+name+'.json']){
-   try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}catch(e){last=e}
-  } throw last;
- }
+ async function loadBundle(name){const r=await fetch('/'+name+'.json',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}
  async function start(){try{[bank,sources]=await Promise.all([loadBundle('quiz_cases'),loadBundle('source_registry')]);
   if(!Array.isArray(bank.items)||!Array.isArray(sources.sources))throw Error('学习数据格式不符');
   const cats=[...new Set(bank.items.map(x=>x.category))];const sel=el('quiz-category');sel.append(...cats.map(c=>{let o=node('option',c);o.value=c;return o}));
