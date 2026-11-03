@@ -34,7 +34,7 @@ NMPA_URL = "https://datasearch.nmpa.gov.cn/"
 NMPA_HELP = "https://datasearch.nmpa.gov.cn/datasearch/search-help.html"
 NHC_GUIDE = "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml"
 
-app = FastAPI(title="儿科临床药典 · 中国版", version="1.8.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="儿科临床药典 · 中国版", version="1.9.0", docs_url=None, redoc_url=None)
 LEARNING_PATH = ROOT / "data" / "learning.json"
 LEARNING = json.loads(LEARNING_PATH.read_text(encoding="utf-8"))
 CLINICAL = json.loads((ROOT / "data" / "clinical_extension.json").read_text(encoding="utf-8"))

@@ -45,7 +45,7 @@
   },
   "library/books.json": {
     "file": "library__books.js",
-    "bytes": 1030
+    "bytes": 1396
   },
   "library/demo_quickref.json": {
     "file": "library__demo_quickref.js",
@@ -54,5 +54,13 @@
   "library/nice_ng1.json": {
     "file": "library__nice_ng1.js",
     "bytes": 47528
+  },
+  "library/zhufutang9a.json": {
+    "file": "library__zhufutang9a.js",
+    "bytes": 388415
+  },
+  "library/zhufutang9b.json": {
+    "file": "library__zhufutang9b.js",
+    "bytes": 3807
   }
 }

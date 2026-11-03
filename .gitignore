@@ -14,3 +14,5 @@ data/library/raw/*.txt
 data/library/raw/*.zip
 _cat/
 *.pdf
+data/library/ocr/
+_ocr_tmp/
