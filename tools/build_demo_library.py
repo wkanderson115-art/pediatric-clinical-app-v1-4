@@ -59,6 +59,26 @@ def build_sections() -> list[tuple[str, str]]:
             f"危险信号：{path.get('redflags', '')}"
         )
         sections.append((f"路径 · {path['title']}", text))
+    # 学习专题：把五段学习要点整理成书库条目，让离线书库开机就有实质内容
+    learning = load('learning.json')
+    for system in learning['systems']:
+        for topic in system['topics']:
+            body = '\n'.join(f"{k}：{v}" for k, v in (topic.get('content') or {}).items())
+            sections.append((f"专题 · {system['name']} · {topic['title']}",
+                             f"{topic['title']}（{system['name']}）\n{body}\n复习状态：{topic.get('review_status', '')}"))
+    # 循证练习：题干 + 正确选项 + 解析，作为可检索的问答卡
+    quiz = load('quiz_cases.json')
+    for item in quiz['items']:
+        correct = item['choices'][item['correct']] if item.get('choices') else ''
+        sections.append((f"练习 · {item['category']} · {item['title']}",
+                         f"{item['stem']}\n正确答案：{correct}\n解析：{item.get('explanation', '')}\n易错点：{item.get('pitfall', '')}"))
+    # 模拟病例：主诉、诊断选项、教学解析，便于按症状检索
+    sim = load('simulation_cases.json')
+    for case in sim['cases']:
+        sections.append((f"病例 · {case['title']}",
+                         f"主诉：{case.get('chief', '')}\n年龄/性别/体重：{case.get('age', '')}岁 {case.get('sex', '')} {case.get('weight_kg', '')}kg\n"
+                         f"生命体征：{case.get('vitals', '')}\n诊断选项：{'；'.join(case.get('diagnoses') or [])}\n"
+                         f"教学解析：{case.get('reasoning', '')}"))
     return sections
 
 

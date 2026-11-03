@@ -38,13 +38,13 @@
  }
  function buildEvidence(){if(!sources||!bank)return;
   Promise.all([
-   fetch('/clinical_extension.json').then(r=>r.json()).catch(()=>null),
-   fetch('/learning.json').then(r=>r.json()).catch(()=>null),
-   fetch('/simulation_cases.json').then(r=>r.json()).catch(()=>null),
-   fetch('/drug_formulary.json').then(r=>r.json()).catch(()=>null),
-   fetch('/lab_reference_ranges.json').then(r=>r.json()).catch(()=>null),
-   fetch('/dose_rules.json').then(r=>r.json()).catch(()=>null),
-   fetch('/relations.json').then(r=>r.json()).catch(()=>null)
+   LocalData.load('/clinical_extension.json').catch(()=>null),
+   LocalData.load('/learning.json').catch(()=>null),
+   LocalData.load('/simulation_cases.json').catch(()=>null),
+   LocalData.load('/drug_formulary.json').catch(()=>null),
+   LocalData.load('/lab_reference_ranges.json').catch(()=>null),
+   LocalData.load('/dose_rules.json').catch(()=>null),
+   LocalData.load('/relations.json').catch(()=>null)
   ]).then(([cl,learn,sim,form,ranges,dose,rel])=>{
    const count=cl?.clinical_paths?.length||0;
    const trace=cl?.clinical_paths?.filter(x=>Array.isArray(x.sources)&&x.sources.length).length||0;

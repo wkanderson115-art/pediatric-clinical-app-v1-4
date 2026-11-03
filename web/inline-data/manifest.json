@@ -1,0 +1,50 @@
+{
+  "drug_formulary.json": {
+    "file": "drug_formulary.js",
+    "bytes": 318109
+  },
+  "lab_reference_ranges.json": {
+    "file": "lab_reference_ranges.js",
+    "bytes": 195969
+  },
+  "clinical_extension.json": {
+    "file": "clinical_extension.js",
+    "bytes": 273673
+  },
+  "learning.json": {
+    "file": "learning.js",
+    "bytes": 144361
+  },
+  "quiz_cases.json": {
+    "file": "quiz_cases.js",
+    "bytes": 74671
+  },
+  "dose_rules.json": {
+    "file": "dose_rules.js",
+    "bytes": 85040
+  },
+  "relations.json": {
+    "file": "relations.js",
+    "bytes": 89849
+  },
+  "source_registry.json": {
+    "file": "source_registry.js",
+    "bytes": 3303
+  },
+  "simulation_cases.json": {
+    "file": "simulation_cases.js",
+    "bytes": 1171749
+  },
+  "medical_audit.json": {
+    "file": "medical_audit.js",
+    "bytes": 3508510
+  },
+  "library/books.json": {
+    "file": "library__books.js",
+    "bytes": 619
+  },
+  "library/demo_quickref.json": {
+    "file": "library__demo_quickref.js",
+    "bytes": 485540
+  }
+}

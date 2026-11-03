@@ -15,9 +15,9 @@
   function offlineFallback(query) {
     // PWA 离线时后端不可用，用已缓存的三份核心数据做简化检索
     return Promise.all([
-      fetch('/clinical_extension.json').then(r => r.json()).catch(() => null),
-      fetch('/learning.json').then(r => r.json()).catch(() => null),
-      fetch('/drug_formulary.json').then(r => r.json()).catch(() => null)
+      LocalData.load('/clinical_extension.json').catch(() => null),
+      LocalData.load('/learning.json').catch(() => null),
+      LocalData.load('/drug_formulary.json').catch(() => null)
     ]).then(([clinical, learning, formulary]) => {
       const q = query.trim().toLowerCase();
       const facets = [];

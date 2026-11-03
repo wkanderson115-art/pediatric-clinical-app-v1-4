@@ -17,9 +17,7 @@
 
   function load() {
     if (!loading) {
-      loading = fetch('/drug_formulary.json', { cache: 'no-store' })
-        .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); })
-        .then(d => {
+      loading = LocalData.load('/drug_formulary.json').then(d => {
           if (!d || !Array.isArray(d.items)) throw Error('format');
           state.data = d;
           return d;
@@ -169,9 +167,7 @@
 
   function loadDose() {
     if (!doseLoading) {
-      doseLoading = fetch('/dose_rules.json', { cache: 'no-store' })
-        .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); })
-        .then(d => { doseData = d; return d; })
+      doseLoading = LocalData.load('/dose_rules.json').then(d => { doseData = d; return d; })
         .catch(() => null);
     }
     return doseLoading;

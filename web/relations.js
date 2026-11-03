@@ -7,8 +7,7 @@
 
   function load() {
     if (!state.loading) {
-      state.loading = fetch('/relations.json', { cache: 'no-store' })
-        .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); })
+      state.loading = LocalData.load('/relations.json')
         .then(d => { state.data = d; return d; })
         .catch(() => null);
     }

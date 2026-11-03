@@ -12,10 +12,10 @@
       "edition": "1",
       "source_file": "tools/build_demo_library.py",
       "format": "generated",
-      "chunks": 319,
-      "chars": 82559,
-      "bytes": 230711,
-      "sha256": "0df73ff02e4c99a0",
+      "chunks": 676,
+      "chars": 164989,
+      "bytes": 485455,
+      "sha256": "51fca5754280ecbd",
       "imported_at": "2026-11-03"
     }
   ]

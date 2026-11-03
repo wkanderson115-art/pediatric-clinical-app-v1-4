@@ -15,9 +15,7 @@
   const esc = s => String(s || '');
 
   async function json(path) {
-    const r = await fetch(path, { cache: 'no-store' });
-    if (!r.ok) throw Error('HTTP ' + r.status);
-    return r.json();
+    return LocalData.load(path);
   }
 
   async function loadBooks() {

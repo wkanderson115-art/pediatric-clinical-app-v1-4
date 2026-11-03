@@ -157,7 +157,7 @@ function renderHistory(){const root=$('sim-history-records');root.replaceChildre
  if(r.notes)details.append(el('p','复盘笔记：'+r.notes));
  (r.transcript||[]).slice(0,40).forEach(t=>details.append(el('p',t.who+'：'+t.text)));
  a.append(details);root.append(a)})}
-async function init(){try{let response=await fetch('/simulation_cases.json');if(!response.ok)throw Error('HTTP '+response.status);library=await response.json();if(!Array.isArray(library.cases)||library.cases.length<8)throw Error('病例库不完整');
+async function init(){try{library=await LocalData.load('/simulation_cases.json');if(!Array.isArray(library.cases)||library.cases.length<8)throw Error('病例库不完整');
  const groups=['全部',...new Set(library.cases.map(x=>x.system))];groups.forEach(v=>{const opt=el('option',v);opt.value=v;$('sim-filter').append(opt)});
  const meta=library.catalogue;
  $('sim-count').textContent=meta?`共 ${library.cases.length} 份虚构病例；新增${meta.core_scenarios}个核心临床场景 ×4种教学情境＝${meta.scenario_variants}份，另有原版${meta.inherited_cases}份。呼吸、消化、住院输液各48份；无需AI API。`:`已收录 ${library.cases.length} 个虚构病例；无需AI API。`;

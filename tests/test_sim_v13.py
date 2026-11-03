@@ -74,4 +74,4 @@ def test_v13_screen_and_cache_ids():
     assert 'points.orderReview' in js
     assert "s.orderReviews[x.id]" in js
     assert 'pediatric-cn-shell-v1.7.0-direct' in sw
-    assert '<span class="version">V1.7</span>' in h
+    assert '<span class="version">V1.7.1 离线书库</span>' in h

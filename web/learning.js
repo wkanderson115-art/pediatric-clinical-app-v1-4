@@ -58,7 +58,7 @@ function openLearningTopic(id){
 }
 async function loadLearning(){
  let data;
- try{const resp=await fetch('/learning.json',{cache:'no-store'});if(!resp.ok)throw Error('no static library');data=await resp.json();learningState.source='local static'}
+ try{data=await LocalData.load('/learning.json');learningState.source='local static'}
  catch{$('library-counter').textContent='无法加载完整知识库：请检查部署或网络';return}
  if(!data||!Array.isArray(data.systems)){$('library-counter').textContent='学习库格式错误';return}
  learningState.systems=data.systems;

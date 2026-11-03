@@ -33,7 +33,7 @@
  }
  function refresh(){clearTimeout(timer);timer=setTimeout(()=>list(false),180)}
  async function init(){
-  try{const r=await fetch('/medical_audit.json',{cache:'no-store'});if(!r.ok)throw Error('网络响应 '+r.status);ledger=await r.json();if(!Array.isArray(ledger.records)||!ledger.summary)throw Error('审校索引格式无效');summary();list();}
+  try{ledger=await LocalData.load('/medical_audit.json');if(!Array.isArray(ledger.records)||!ledger.summary)throw Error('审校索引格式无效');summary();list();}
   catch(err){el('audit-stats').textContent='尚未加载审计概况：'+err.message;el('audit-count').textContent='审校索引加载失败。'}
  }
  ['audit-kind','audit-priority','audit-missing'].forEach(id=>el(id).addEventListener('change',refresh));el('audit-query').addEventListener('input',refresh);el('audit-more').addEventListener('click',()=>{page++;list(true)});el('audit-reset').addEventListener('click',()=>{el('audit-query').value='';el('audit-kind').value='';el('audit-priority').value='';el('audit-missing').checked=false;list()});init();
