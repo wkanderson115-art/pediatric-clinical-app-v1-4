@@ -8,3 +8,6 @@ __pycache__/
 dist/
 ipa_dl/
 *.ipa
+data/library/raw/*.pdf
+data/library/raw/*.epub
+data/library/raw/*.txt

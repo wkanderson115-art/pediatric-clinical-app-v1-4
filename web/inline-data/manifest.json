@@ -41,10 +41,14 @@
   },
   "library/books.json": {
     "file": "library__books.js",
-    "bytes": 619
+    "bytes": 1030
   },
   "library/demo_quickref.json": {
     "file": "library__demo_quickref.js",
     "bytes": 485540
+  },
+  "library/nice_ng1.json": {
+    "file": "library__nice_ng1.js",
+    "bytes": 47528
   }
 }

@@ -18,6 +18,21 @@ window.__DATA__["library/books.json"]={
       "bytes": 485455,
       "sha256": "51fca5754280ecbd",
       "imported_at": "2026-11-03"
+    },
+    {
+      "id": "nice_ng1",
+      "title": "NICE NG1 儿童胃食管反流病（英文指南）",
+      "authors": "NICE",
+      "publisher": "NICE",
+      "year": "2019",
+      "edition": "",
+      "source_file": "nice_ng1.pdf",
+      "format": "pdf",
+      "chunks": 50,
+      "chars": 44511,
+      "bytes": 47448,
+      "sha256": "f1ac53f42fa3c3e2",
+      "imported_at": "2026-11-03"
     }
   ]
 };

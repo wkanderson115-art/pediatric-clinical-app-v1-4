@@ -23,6 +23,9 @@ WEB_DATA = ROOT / 'web'
 OUT = ROOT / 'web' / 'inline-data'
 
 # 需要内联的文件（相对 data/）；顺序决定加载先后
+LIBRARY_DIR = DATA / 'library'
+EXTRA_LIBRARY = sorted(p.relative_to(DATA).as_posix() for p in LIBRARY_DIR.glob('*.json') if p.name != 'books.json')
+
 TARGETS = [
     'drug_formulary.json',
     'lab_reference_ranges.json',
@@ -35,8 +38,7 @@ TARGETS = [
     'simulation_cases.json',
     'medical_audit.json',
     'library/books.json',
-    'library/demo_quickref.json',
-]
+] + EXTRA_LIBRARY
 
 
 def inline_name(rel: str) -> str:
