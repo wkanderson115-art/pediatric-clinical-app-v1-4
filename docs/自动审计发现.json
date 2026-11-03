@@ -1,0 +1,28 @@
+{
+  "total_claims": 3263,
+  "claims_with_candidate_source": 1859,
+  "claims_without_candidate_source": 1404,
+  "counts_by_kind": {
+    "诊疗路径": 540,
+    "基础专题": 650,
+    "化验指标": 930,
+    "检查术语": 268,
+    "输液安全": 28,
+    "循证练习题": 187,
+    "离线药典": 660
+  },
+  "missing_source_by_kind": {
+    "基础专题": 480,
+    "化验指标": 636,
+    "检查术语": 268,
+    "输液安全": 20
+  },
+  "p0_by_kind": {
+    "诊疗路径": 271,
+    "基础专题": 16,
+    "输液安全": 28,
+    "循证练习题": 37,
+    "离线药典": 447
+  },
+  "ready_for_clinical_use": false
+}

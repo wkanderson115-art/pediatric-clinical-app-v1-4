@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+private/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+dist/
+ipa_dl/
+*.ipa

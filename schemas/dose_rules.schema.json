@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "结构化教学剂量规则",
+  "type": "object",
+  "required": ["items", "policy"],
+  "properties": {
+    "policy": {
+      "type": "object",
+      "required": ["not_a_prescription", "verification"],
+      "properties": {
+        "not_a_prescription": {"type": "boolean", "const": true},
+        "verification": {"type": "string", "minLength": 10}
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["drug_id", "generic_name", "rules", "verified", "review_status"],
+        "properties": {
+          "drug_id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "generic_name": {"type": "string"},
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["route", "basis", "low", "high", "unit", "verified"],
+              "properties": {
+                "route": {"type": "string"},
+                "basis": {"type": "string", "enum": ["日", "次"]},
+                "low": {"type": "number", "minimum": 0},
+                "high": {"type": "number", "minimum": 0},
+                "unit": {"type": "string"},
+                "times_per_day": {"type": "array"},
+                "max_single": {"type": ["number", "null"]},
+                "verified": {"type": "boolean", "const": false}
+              }
+            }
+          },
+          "verified": {"type": "boolean", "const": false},
+          "review_status": {"type": "string", "minLength": 8}
+        }
+      }
+    }
+  }
+}

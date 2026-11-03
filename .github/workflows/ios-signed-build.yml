@@ -1,0 +1,77 @@
+name: iOS Signed Build (Development / Ad Hoc)
+
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: '签名方式'
+        required: true
+        default: development
+        type: choice
+        options: [development, ad-hoc]
+
+permissions:
+  contents: read
+
+jobs:
+  build-signed:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore bundled assets
+        run: python3 tools/rebuild_large_assets.py
+
+      - name: Import signing certificate
+        env:
+          CERT_P12_BASE64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "$CERT_P12_BASE64" | base64 --decode > /tmp/cert.p12
+          echo "$PROFILE_BASE64" | base64 --decode > /tmp/profile.mobileprovision
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import /tmp/cert.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp /tmp/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build archive
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          PROFILE_UUID: ${{ secrets.IOS_PROFILE_UUID }}
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios/PediatricClinicalApp.xcodeproj \
+            -scheme PediatricClinicalApp -configuration Release -sdk iphoneos \
+            -archivePath build/PediatricClinicalApp.xcarchive \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
+            archive
+
+      - name: Export IPA
+        env:
+          METHOD: ${{ inputs.method }}
+        run: |
+          set -euo pipefail
+          sed "s/REPLACE_TEAM_ID/${TEAM_ID:-}/; s/REPLACE_PROFILE_UUID/${PROFILE_UUID:-}/; s/<string>development<\/string>/<string>${METHOD}<\/string>/" \
+            ios/ExportOptions-development.plist > build/ExportOptions.plist || cp ios/ExportOptions-development.plist build/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath build/PediatricClinicalApp.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/ipa
+
+      - name: Verify IPA bundle
+        run: python3 tools/verify_ipa_bundle.py build/ipa/*.ipa
+
+      - name: Upload signed IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PediatricClinicalApp-signed-ipa
+          path: build/ipa/*.ipa
+          retention-days: 30

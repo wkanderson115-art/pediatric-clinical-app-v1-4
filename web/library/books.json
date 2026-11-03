@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-03",
+  "policy": {},
+  "books": [
+    {
+      "id": "demo_quickref",
+      "title": "儿科临床速查（本项目自建教学示例）",
+      "authors": "本项目编辑",
+      "publisher": "本机",
+      "year": "2026",
+      "edition": "1",
+      "source_file": "tools/build_demo_library.py",
+      "format": "generated",
+      "chunks": 319,
+      "chars": 82559,
+      "bytes": 230711,
+      "sha256": "0df73ff02e4c99a0",
+      "imported_at": "2026-11-03"
+    }
+  ]
+}

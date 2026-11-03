@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Ad Hoc 签名：不越狱设备直接安装，需要 100 台 UDID 白名单（付费开发者账号 99 USD/年） -->
+    <key>method</key>
+    <string>ad-hoc</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>compileBitcode</key>
+    <false/>
+    <key>destination</key>
+    <string>export</string>
+    <key>teamID</key>
+    <string>REPLACE_TEAM_ID</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.pediatricclinical.app</key>
+        <string>REPLACE_PROFILE_UUID</string>
+    </dict>
+</dict>
+</plist>

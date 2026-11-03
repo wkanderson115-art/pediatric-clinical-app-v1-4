@@ -1,0 +1,141 @@
+{
+  "version": 2,
+  "assets": [
+    {
+      "path": "data/medical_audit.json",
+      "size": 3508433,
+      "sha256": "53ba4fe2ec1578f33f686e166ee0669be79b966dcad49e76bd238a5dcdffeab6",
+      "parts": [
+        "asset_parts/data__medical_audit.json.part001",
+        "asset_parts/data__medical_audit.json.part002",
+        "asset_parts/data__medical_audit.json.part003",
+        "asset_parts/data__medical_audit.json.part004",
+        "asset_parts/data__medical_audit.json.part005",
+        "asset_parts/data__medical_audit.json.part006",
+        "asset_parts/data__medical_audit.json.part007",
+        "asset_parts/data__medical_audit.json.part008",
+        "asset_parts/data__medical_audit.json.part009"
+      ]
+    },
+    {
+      "path": "web/medical_audit.json",
+      "size": 3508433,
+      "sha256": "53ba4fe2ec1578f33f686e166ee0669be79b966dcad49e76bd238a5dcdffeab6",
+      "parts": [
+        "asset_parts/data__medical_audit.json.part001",
+        "asset_parts/data__medical_audit.json.part002",
+        "asset_parts/data__medical_audit.json.part003",
+        "asset_parts/data__medical_audit.json.part004",
+        "asset_parts/data__medical_audit.json.part005",
+        "asset_parts/data__medical_audit.json.part006",
+        "asset_parts/data__medical_audit.json.part007",
+        "asset_parts/data__medical_audit.json.part008",
+        "asset_parts/data__medical_audit.json.part009"
+      ]
+    },
+    {
+      "path": "data/simulation_cases.json",
+      "size": 1171671,
+      "sha256": "aa891deae9b4dd2b5ac1a8f5256244159988fdbbe48ee98f5c1713857a522efa",
+      "parts": [
+        "asset_parts/data__simulation_cases.json.part001",
+        "asset_parts/data__simulation_cases.json.part002",
+        "asset_parts/data__simulation_cases.json.part003"
+      ]
+    },
+    {
+      "path": "web/simulation_cases.json",
+      "size": 1171671,
+      "sha256": "aa891deae9b4dd2b5ac1a8f5256244159988fdbbe48ee98f5c1713857a522efa",
+      "parts": [
+        "asset_parts/data__simulation_cases.json.part001",
+        "asset_parts/data__simulation_cases.json.part002",
+        "asset_parts/data__simulation_cases.json.part003"
+      ]
+    },
+    {
+      "path": "docs/医学逐条审核底稿.csv",
+      "size": 1263936,
+      "sha256": "54a162189a966673371a224099af659063dfaf337d300e94a21ea1327c4ee487",
+      "parts": [
+        "asset_parts/docs__医学逐条审核底稿.csv.part001",
+        "asset_parts/docs__医学逐条审核底稿.csv.part002",
+        "asset_parts/docs__医学逐条审核底稿.csv.part003",
+        "asset_parts/docs__医学逐条审核底稿.csv.part004"
+      ]
+    },
+    {
+      "path": "V0.3_iPhone四屏模拟预览.png",
+      "size": 707104,
+      "sha256": "ab21c4d79aacc2c663762d8845c2e4d32a2defcc0245b3b4567a4428c9a73d91",
+      "parts": [
+        "asset_parts/V0.3_iPhone四屏模拟预览.png.part001",
+        "asset_parts/V0.3_iPhone四屏模拟预览.png.part002"
+      ]
+    },
+    {
+      "path": "data/drug_formulary.json",
+      "size": 318033,
+      "sha256": "39f49d18c8e937f23dc2da171babdad5b650803ddb4f6dca8c1a6ee13cb32a24",
+      "parts": [
+        "asset_parts/data__drug_formulary.json.part001"
+      ]
+    },
+    {
+      "path": "web/drug_formulary.json",
+      "size": 318033,
+      "sha256": "39f49d18c8e937f23dc2da171babdad5b650803ddb4f6dca8c1a6ee13cb32a24",
+      "parts": [
+        "asset_parts/data__drug_formulary.json.part001"
+      ]
+    },
+    {
+      "path": "data/lab_reference_ranges.json",
+      "size": 195887,
+      "sha256": "74c0703fbb6757198e24bf8e94dc4d252c51caac7a390e2bbea29309929275d5",
+      "parts": [
+        "asset_parts/data__lab_reference_ranges.json.part001"
+      ]
+    },
+    {
+      "path": "web/lab_reference_ranges.json",
+      "size": 195887,
+      "sha256": "74c0703fbb6757198e24bf8e94dc4d252c51caac7a390e2bbea29309929275d5",
+      "parts": [
+        "asset_parts/data__lab_reference_ranges.json.part001"
+      ]
+    },
+    {
+      "path": "data/dose_rules.json",
+      "size": 84968,
+      "sha256": "ad62ffd79663343b10718b08921a7b1da67c69040aae61987995571f79ae729b",
+      "parts": [
+        "asset_parts/data__dose_rules.json.part001"
+      ]
+    },
+    {
+      "path": "web/dose_rules.json",
+      "size": 84968,
+      "sha256": "ad62ffd79663343b10718b08921a7b1da67c69040aae61987995571f79ae729b",
+      "parts": [
+        "asset_parts/data__dose_rules.json.part001"
+      ]
+    },
+    {
+      "path": "data/relations.json",
+      "size": 89778,
+      "sha256": "05591576569c57b9fb5c83d69971fd986172a2887eb2483297d46878306ed399",
+      "parts": [
+        "asset_parts/data__relations.json.part001"
+      ]
+    },
+    {
+      "path": "web/relations.json",
+      "size": 89778,
+      "sha256": "05591576569c57b9fb5c83d69971fd986172a2887eb2483297d46878306ed399",
+      "parts": [
+        "asset_parts/data__relations.json.part001"
+      ]
+    }
+  ]
+}

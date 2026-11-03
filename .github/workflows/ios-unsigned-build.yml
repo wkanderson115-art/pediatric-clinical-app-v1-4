@@ -1,0 +1,33 @@
+name: iOS Build (Unsigned IPA)
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-unsigned-ipa:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore bundled assets
+        run: python3 tools/rebuild_large_assets.py
+      - name: Build unsigned iPhone app
+        run: |
+          xcodebuild -project ios/PediatricClinicalApp.xcodeproj \
+            -scheme PediatricClinicalApp -configuration Release -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+      - name: Package IPA
+        run: |
+          mkdir -p build/Payload
+          cp -R build/DerivedData/Build/Products/Release-iphoneos/PediatricClinicalApp.app build/Payload/
+          cd build && zip -qry PediatricClinicalApp_unsigned.ipa Payload
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PediatricClinicalApp-direct-api-unsigned-ipa
+          path: build/PediatricClinicalApp_unsigned.ipa
+          retention-days: 30

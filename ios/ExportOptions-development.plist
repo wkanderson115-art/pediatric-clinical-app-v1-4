@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 开发签名：真机直接运行，需在 Xcode 里登录 Apple ID 并选中 Personal Team -->
+    <key>method</key>
+    <string>development</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>compileBitcode</key>
+    <false/>
+    <key>destination</key>
+    <string>export</string>
+    <key>teamID</key>
+    <string>REPLACE_TEAM_ID</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.pediatricclinical.app</key>
+        <string>REPLACE_PROFILE_UUID</string>
+    </dict>
+</dict>
+</plist>
