@@ -23,12 +23,14 @@
 <script defer src="/inline-data/relations.js"></script>
 <script defer src="/inline-data/source_registry.js"></script>
 <script defer src="/inline-data/library__books.js"></script>
+<script defer src="/inline-data/insurance_catalog.js"></script>
 <script defer src="/direct-api.js"></script>
 <script defer src="/main.js"></script>
 <script defer src="/formulary.js"></script>
 <script defer src="/relations.js"></script>
 <script defer src="/global-search.js"></script>
 <script defer src="/library.js"></script>
+<script defer src="/catalogs.js"></script>
 <script defer src="/learning.js"></script>
 <script defer src="/clinical.js"></script>
 <script defer src="/chart-review.js"></script>
@@ -45,7 +47,7 @@
   <header class="topbar">
     <div class="logo" aria-hidden="true">✳</div>
     <div class="brand"><strong>儿科临床药典</strong><small>中国药品说明书 · 专业学习版</small></div>
-    <span class="version">V1.7.2 离线书库</span>
+    <span class="version">V1.8 目录查询</span>
   </header>
 
   <main class="main">
@@ -78,7 +80,7 @@
       <label for="study-keyword" class="sr-only">搜索儿科学习内容</label>
       <input id="study-keyword" class="study-keyword" type="search" placeholder="搜索：发热、肺炎、血尿、休克…" autocomplete="off">
       <div class="study-pills" id="study-filters"></div>
-      <div class="feature-strip"><button type="button" data-page="global">🔍 全局检索 ›</button><button type="button" data-page="library">📚 离线书库 ›</button><button type="button" data-page="clinic">🩺 系统诊疗路径 ›</button><button type="button" data-page="labs">🧪 化验单全解 ›</button><button type="button" data-page="exams">🩻 检查报告解读 ›</button><button type="button" data-page="infusion">💧 输液安全专题 ›</button><button type="button" data-page="chart">📋 病历书写质控 ›</button><button type="button" data-page="sim">🏥 全真模拟接诊 ›</button><button type="button" data-page="quiz">🎓 循证病例练习 ›</button><button type="button" data-page="evidence">📚 来源与审校状态 ›</button><button type="button" data-page="audit">🔎 医学逐条审校 ›</button></div>
+      <div class="feature-strip"><button type="button" data-page="global">🔍 全局检索 ›</button><button type="button" data-page="library">📚 离线书库 ›</button><button type="button" data-page="catalogs">🗂 目录查询 ›</button><button type="button" data-page="clinic">🩺 系统诊疗路径 ›</button><button type="button" data-page="labs">🧪 化验单全解 ›</button><button type="button" data-page="exams">🩻 检查报告解读 ›</button><button type="button" data-page="infusion">💧 输液安全专题 ›</button><button type="button" data-page="chart">📋 病历书写质控 ›</button><button type="button" data-page="sim">🏥 全真模拟接诊 ›</button><button type="button" data-page="quiz">🎓 循证病例练习 ›</button><button type="button" data-page="evidence">📚 来源与审校状态 ›</button><button type="button" data-page="audit">🔎 医学逐条审校 ›</button></div>
       <div class="topic-stack" id="study-topics"></div>
       <div class="reference-box"><h3>中国权威资料入口</h3><a href="https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml" target="_blank" rel="noopener noreferrer">儿童肺炎支原体肺炎诊疗指南（2025年版） <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/" target="_blank" rel="noopener noreferrer">国家药监局数据查询 <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/datasearch/search-help.html" target="_blank" rel="noopener noreferrer">国家药监局查询帮助 <span>↗</span></a></div>
     </section>
@@ -89,6 +91,18 @@
       <p id="global-count" class="catalog-remaining" role="status"></p>
       <div id="global-results" class="global-results"></div>
       <p class="footnote">命中只表示关键词出现在该条目正文，不代表医学结论一致；点击结果跳到对应模块继续核对。离线时自动降级为本地简化检索。</p>
+    </section>
+
+    <section class="page" id="page-catalogs" aria-label="官方目录查询">
+      <div class="page-title"><span class="eyebrow">OFFICIAL CATALOGS · V1.8</span><h1>官方目录查询</h1><p>医保药品目录（甲/乙类、限定支付）与上市药品批文目录（批准文号、剂型、生产单位）。医保目录已内置，断网可查；批文目录在服务端检索。</p></div>
+      <div class="catalog-tabs" role="tablist">
+        <button type="button" class="catalog-tab selected" data-cat="insurance">医保目录（离线）</button>
+        <button type="button" class="catalog-tab" data-cat="approval">批文目录（服务端）</button>
+      </div>
+      <form id="catalog-form" class="search-form"><label class="sr-only" for="catalog-query">目录检索</label><div class="search-input-wrap"><span class="glass">⌕</span><input id="catalog-query" type="search" placeholder="查通用名：阿奇霉素 / 布洛芬 / 蒙脱石" maxlength="40" autocomplete="off"><button type="submit">检索</button></div></form>
+      <p id="catalog-count" class="catalog-remaining" role="status"></p>
+      <div id="catalog-results" class="catalog-results"></div>
+      <p class="footnote">医保目录来自《国家基本医疗保险、工伤保险和生育保险药品目录（2024年）》公开 PDF 整理；批文目录来自国家药监局公开数据的 2020 快照。费用类别、限定支付与批文状态以最新官方发布为准，本页只做检索辅助。</p>
     </section>
 
     <section class="page" id="page-library" aria-label="离线书库">
@@ -150,7 +164,7 @@
     <section class="page" id="page-tools" aria-label="工具与收藏">
       <div class="clinic-panel"><h2>专业学习扩展</h2><div class="chart-actions"><button type="button" class="outline-button" data-page="sim">🏥 全真模拟接诊</button><button type="button" class="outline-button" data-page="quiz">🎓 循证模拟病例练习</button><button type="button" class="outline-button" data-page="evidence">📚 来源与内容审核状态</button></div></div>
       <div class="page-title"><span class="eyebrow">TOOLS</span><h1>学习工具</h1><p>官方批准信息核验、剂量数学练习与常用药收藏。</p></div>
-      <div class="tools-menu"><button type="button" data-page="library">📚 离线书库（电子书检索） <span>›</span></button><button type="button" data-page="global">🔍 全局检索（跨 7 模块） <span>›</span></button><button type="button" data-page="sim">🏥 全真模拟接诊 <span>›</span></button><button type="button" data-page="clinic">🩺 诊断与治疗学习路径 <span>›</span></button><button type="button" data-page="labs">📷 拍照识别与化验单全解 <span>›</span></button><button type="button" data-page="exams">🩻 拍照识别影像/心电/超声报告 <span>›</span></button><button type="button" data-page="infusion">💧 静脉输液安全学习 <span>›</span></button><button type="button" data-page="chart">📋 病历书写智能质控 <span>›</span></button><button type="button" data-page="ask">✳ 疑难病例AI提问 <span>›</span></button><button type="button" data-page="notes">◷ 我的疑难问题记录 <span>›</span></button><button type="button" data-page="verify">🛡 国家药监局批文核验 <span>›</span></button><button type="button" data-page="calc">▦ 儿童剂量计算练习 <span>›</span></button><button type="button" data-page="favs">☆ 常用药品收藏 <span>›</span></button><button type="button" data-page="admin">🔐 API 密钥管理 <span>›</span></button></div>
+      <div class="tools-menu"><button type="button" data-page="catalogs">🗂 官方目录查询（医保/批文） <span>›</span></button><button type="button" data-page="library">📚 离线书库（电子书检索） <span>›</span></button><button type="button" data-page="global">🔍 全局检索（跨 7 模块） <span>›</span></button><button type="button" data-page="sim">🏥 全真模拟接诊 <span>›</span></button><button type="button" data-page="clinic">🩺 诊断与治疗学习路径 <span>›</span></button><button type="button" data-page="labs">📷 拍照识别与化验单全解 <span>›</span></button><button type="button" data-page="exams">🩻 拍照识别影像/心电/超声报告 <span>›</span></button><button type="button" data-page="infusion">💧 静脉输液安全学习 <span>›</span></button><button type="button" data-page="chart">📋 病历书写智能质控 <span>›</span></button><button type="button" data-page="ask">✳ 疑难病例AI提问 <span>›</span></button><button type="button" data-page="notes">◷ 我的疑难问题记录 <span>›</span></button><button type="button" data-page="verify">🛡 国家药监局批文核验 <span>›</span></button><button type="button" data-page="calc">▦ 儿童剂量计算练习 <span>›</span></button><button type="button" data-page="favs">☆ 常用药品收藏 <span>›</span></button><button type="button" data-page="admin">🔐 API 密钥管理 <span>›</span></button></div>
     </section>
 
     <section class="page" id="page-clinic" aria-label="诊断与治疗学习路径">

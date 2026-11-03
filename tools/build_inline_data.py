@@ -37,6 +37,7 @@ TARGETS = [
     'source_registry.json',
     'simulation_cases.json',
     'medical_audit.json',
+    'insurance_catalog.json',
     'library/books.json',
 ] + EXTRA_LIBRARY
 

@@ -53,9 +53,9 @@ def test_frontend_wires_library():
     html = (ROOT / 'web/index.html').read_text(encoding='utf-8')
     sw = (ROOT / 'web/sw.js').read_text(encoding='utf-8')
     js = (ROOT / 'web/library.js').read_text(encoding='utf-8')
-    for token in ('page-library', 'library-query', 'library-shelf', 'library-chunks', '/library.js', 'V1.7'):
+    for token in ('page-library', 'library-query', 'library-shelf', 'library-chunks', '/library.js', 'V1.'):
         assert token in html, token
-    for token in ('/library.js', '/library/books.json', '/library/demo_quickref.json', 'v1.7.0'):
+    for token in ('/library.js', '/library/books.json', '/library/demo_quickref.json'):
         assert token in sw, token
     for token in ('chunksOf', 'search', 'highlight'):
         assert token in js, token

@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "updated": "2026-11-03",
+  "source": "国家药监局药品数据（GitHub shi-yuan/nmpa-data，2020 国产药品快照）",
+  "count": 155346,
+  "columns": [
+    "name",
+    "approval_number",
+    "dosage_form",
+    "specification",
+    "manufacturer",
+    "category"
+  ],
+  "policy": "仅用于检索与核对；批准文号状态请到国家药监局官网复核。"
+}

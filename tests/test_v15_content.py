@@ -128,7 +128,7 @@ def test_frontend_references_new_assets():
     html = (WEB / 'index.html').read_text(encoding='utf-8')
     sw = (WEB / 'sw.js').read_text(encoding='utf-8')
     for token in ('formulary.js', 'offline-formulary', 'formulary-keyword', 'lab-ranges',
-                  'sim-scenarios', 'V1.7'):
+                  'sim-scenarios', 'V1.'):
         assert token in html, token
     for token in ('/formulary.js', '/drug_formulary.json', '/lab_reference_ranges.json'):
         assert token in sw, token

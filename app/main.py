@@ -34,7 +34,7 @@ NMPA_URL = "https://datasearch.nmpa.gov.cn/"
 NMPA_HELP = "https://datasearch.nmpa.gov.cn/datasearch/search-help.html"
 NHC_GUIDE = "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml"
 
-app = FastAPI(title="儿科临床药典 · 中国版", version="1.7.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="儿科临床药典 · 中国版", version="1.8.0", docs_url=None, redoc_url=None)
 LEARNING_PATH = ROOT / "data" / "learning.json"
 LEARNING = json.loads(LEARNING_PATH.read_text(encoding="utf-8"))
 CLINICAL = json.loads((ROOT / "data" / "clinical_extension.json").read_text(encoding="utf-8"))
@@ -134,12 +134,78 @@ async def no_cache_api(request: Request, call_next):
 
 
 def provider() -> str | None:
+    """数据源选择：custom（自建/任意第三方） > moseng > tianapi。
+
+    个人拿不到摩熵数科时，用 CUSTOM_DRUG_API_* 环境变量接任意返回 JSON 的药品接口，
+    字段映射写在 CUSTOM_DRUG_API_FIELD_MAP 里，代码不需要改。
+    """
     pref = os.environ.get("DRUG_PROVIDER", "auto").lower()
-    keys = {"moseng": bool(get_value("MOSENG_API_KEY")),
-            "tianapi": bool(get_value("TIANAPI_KEY"))}
-    if pref == "auto":
-        return "moseng" if keys["moseng"] else "tianapi" if keys["tianapi"] else None
-    return pref if pref in keys and keys[pref] else None
+    order = ["custom", "moseng", "tianapi"] if pref == "auto" else [pref]
+    for name in order:
+        if name == "custom" and custom_ready():
+            return "custom"
+        if name == "moseng" and get_value("MOSENG_API_KEY"):
+            return "moseng"
+        if name == "tianapi" and get_value("TIANAPI_KEY"):
+            return "tianapi"
+    return None
+
+
+def _json_env(name: str, default: Any) -> Any:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return json.loads(raw)
+    except ValueError:
+        return default
+
+
+CUSTOM_DRUG: dict[str, Any] = {
+    "url": os.environ.get("CUSTOM_DRUG_API_URL", "").strip(),
+    "method": os.environ.get("CUSTOM_DRUG_API_METHOD", "GET").strip().upper(),
+    "format": os.environ.get("CUSTOM_DRUG_API_BODY_FORMAT", "json").strip().lower(),
+    "key": os.environ.get("CUSTOM_DRUG_API_KEY", "").strip(),
+    "key_header": os.environ.get("CUSTOM_DRUG_API_KEY_HEADER", "").strip(),
+    "key_prefix": os.environ.get("CUSTOM_DRUG_API_KEY_PREFIX", "").strip(),
+    "key_param": os.environ.get("CUSTOM_DRUG_API_KEY_PARAM", "").strip(),
+    "query_param": os.environ.get("CUSTOM_DRUG_API_QUERY_PARAM", "q").strip(),
+    "page_param": os.environ.get("CUSTOM_DRUG_API_PAGE_PARAM", "page").strip(),
+    "extra_query": _json_env("CUSTOM_DRUG_API_EXTRA_QUERY", {}),
+    "extra_body": _json_env("CUSTOM_DRUG_API_EXTRA_BODY", {}),
+    "list_path": os.environ.get("CUSTOM_DRUG_API_LIST_PATH", "data").strip(),
+    "field_map": _json_env("CUSTOM_DRUG_API_FIELD_MAP", {}),
+    "sections_key": os.environ.get("CUSTOM_DRUG_API_SECTIONS_KEY", "sections").strip(),
+    "section_title_key": os.environ.get("CUSTOM_DRUG_API_SECTION_TITLE", "title").strip(),
+    "section_content_key": os.environ.get("CUSTOM_DRUG_API_SECTION_CONTENT", "content").strip(),
+    "source": os.environ.get("CUSTOM_DRUG_API_SOURCE", "自定义药品接口").strip(),
+    "source_url": os.environ.get("CUSTOM_DRUG_API_SOURCE_URL", "").strip(),
+}
+
+
+def custom_ready() -> bool:
+    return bool(CUSTOM_DRUG.get("url"))
+
+
+def dot_get(obj: Any, path: str, default: Any = None) -> Any:
+    """按 a.b.0.c 的路径取值，取不到返回 default（第三方返回结构千差万别，用它做映射）。"""
+    if not path:
+        return obj
+    current = obj
+    for part in str(path).split("."):
+        if isinstance(current, list):
+            try:
+                current = current[int(part)]
+            except (ValueError, IndexError):
+                return default
+        elif isinstance(current, dict):
+            if part not in current:
+                return default
+            current = current[part]
+        else:
+            return default
+    return current
+
 
 
 def clean_string(value: Any) -> str:
@@ -235,6 +301,90 @@ def check_moseng(payload: dict):
         raise HTTPException(502, "第三方数据源查询失败，请核对参数与服务状态。")
 
 
+def normalize_custom(payload: Any, keyword: str, cfg: dict | None = None) -> list[Drug]:
+    """把任意第三方药品接口的 JSON 映射成 Drug；字段路径由 CUSTOM_DRUG_API_FIELD_MAP 指定。"""
+    cfg = cfg or CUSTOM_DRUG
+    field_map = cfg.get("field_map") or {}
+    items = dot_get(payload, cfg.get("list_path") or "data", [])
+    if isinstance(items, dict):
+        items = [items]
+    if not isinstance(items, list):
+        items = []
+    records: list[Drug] = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            continue
+
+        def field(name: str) -> str:
+            return clean_string(dot_get(item, field_map.get(name, "")))
+
+        name = field("name") or keyword
+        sections: list[Section] = []
+        raw_sections = dot_get(item, cfg.get("sections_key") or "sections", None)
+        if isinstance(raw_sections, str):
+            content = clean_content(raw_sections)
+            if content:
+                sections.append(Section(title="药品资料原文（第三方）", content=content))
+        elif isinstance(raw_sections, list):
+            for entry in raw_sections:
+                if not isinstance(entry, dict):
+                    continue
+                content = clean_content(dot_get(entry, cfg.get("section_content_key") or "content", ""))
+                if content:
+                    title = clean_string(dot_get(entry, cfg.get("section_title_key") or "title", "")) or "说明书正文"
+                    sections.append(Section(title=title, content=content))
+        if not sections:
+            for key in ("content", "instruction", "description"):
+                content = clean_content(item.get(key))
+                if content:
+                    sections.append(Section(title="药品资料原文（第三方）", content=content))
+                    break
+        if not sections:
+            continue
+        records.append(Drug(
+            id=f"custom-{i}", name=name,
+            trade_name=field("trade_name") or None,
+            dosage_form=field("dosage_form") or None,
+            specifications=field("specifications") or None,
+            manufacturer=field("manufacturer") or None,
+            approval_number=field("approval_number") or None,
+            revise_date=field("revise_date") or None,
+            sections=sections,
+            source=str(cfg.get("source") or "自定义药品接口"),
+            source_url=str(cfg.get("source_url") or ""),
+            status="第三方/自建接口资料，未做国家药监局核验"))
+    return records
+
+
+async def custom_fetch(query: str, page: int) -> Any:
+    """按配置请求自建/第三方药品接口，返回原始 JSON（供 normalize_custom 映射）。"""
+    cfg = CUSTOM_DRUG
+    params: dict[str, Any] = dict(cfg.get("extra_query") or {})
+    params[cfg.get("query_param") or "q"] = query
+    if cfg.get("page_param"):
+        params[cfg["page_param"]] = page
+    headers: dict[str, str] = {}
+    if cfg.get("key"):
+        if cfg.get("key_param"):
+            params[cfg["key_param"]] = cfg["key"]
+        elif cfg.get("key_header"):
+            headers[cfg["key_header"]] = (cfg.get("key_prefix") + " " + cfg["key"]).strip()
+    body = dict(cfg.get("extra_body") or {})
+    body.setdefault(cfg.get("query_param") or "q", query)
+    if cfg.get("page_param"):
+        body.setdefault(cfg["page_param"], page)
+    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+        if cfg.get("method") == "POST":
+            if cfg.get("format") == "form":
+                response = await client.post(cfg["url"], params=params, data=body, headers=headers)
+            else:
+                response = await client.post(cfg["url"], params=params, json=body, headers=headers)
+        else:
+            response = await client.get(cfg["url"], params=params, headers=headers)
+    response.raise_for_status()
+    return response.json()
+
+
 def normalize_approvals(payload: dict) -> list[Approval]:
     check_moseng(payload)
     data = payload.get('data') or {}
@@ -274,7 +424,10 @@ async def status():
         'approval_lookup_connected': bool(get_value('MOSENG_API_KEY')),
         'official_nmpa_api_connected': False,
         'official_url': NMPA_URL,
-        'mode': '第三方在线说明书' if p else '尚未配置中文说明书数据源（离线药典与学习内容仍可用）',
+        'mode': {'custom': '自建/第三方药品接口（自定义字段映射）',
+                 'moseng': '摩熵数科·中国药品说明书',
+                 'tianapi': '天聚数行·中文药品资料'}.get(p or '', '尚未配置中文说明书数据源（离线药典与学习内容仍可用）'),
+        'custom_api_configured': custom_ready(),
         'disclaimer': '国家药监局须人工核验；第三方检索结果不代表官方实时认证。',
         'ai_ready': bool(get_value('AI_API_KEY')) and bool(os.environ.get('APP_ACCESS_CODE')),
         'ai_model': DEEPSEEK_MODEL,
@@ -307,6 +460,8 @@ async def search(q: str = Query(min_length=2, max_length=60), page: int = Query(
                     'key': get_value('TIANAPI_KEY'), 'word': q, 'num': '10', 'page': str(page)})
                 response.raise_for_status()
                 records = normalize_tianapi(response.json(), q)
+        elif p == 'custom':
+            records = normalize_custom(await custom_fetch(q, page), q)
         else:
             records = normalize_moseng(await moseng_post(MOSENG_INSTRUCTIONS_URL, {
                 'search': {'drug_name': q}, 'page': page}))
@@ -324,7 +479,8 @@ async def approvals(q: str = Query(min_length=2, max_length=60), page: int = Que
     if len(q) < 2:
         raise HTTPException(422, '请至少输入两个字符。')
     if not get_value('MOSENG_API_KEY'):
-        raise HTTPException(503, '批文自动检索尚未配置：需另外取得摩熵中国药品批文库 API 权限。可使用国家药监局官网手工核验。')
+        hint = '自定义数据源（CUSTOM_DRUG_API_*）只映射说明书检索，不含批文库；' if custom_ready() else ''
+        raise HTTPException(503, f'{hint}批文自动检索需摩熵中国药品批文库权限，或使用国家药监局官网手工核验。')
     term = {'approval_number': q} if q.startswith('国药准字') else {'drug_name': q}
     try:
         records = normalize_approvals(await moseng_post(MOSENG_APPROVAL_URL, {'search': term, 'page': page}))
@@ -979,6 +1135,103 @@ async def library_chunks(book_id: str,
     page = list(chunks[start:start + count])
     return {'book': books[book_id], 'total': len(chunks), 'start': start,
             'count': len(page), 'items': page}
+
+
+# ---------------------------------------------------------------------------
+# V1.8 官方目录检索：医保药品目录（离线可查） + 上市药品批文目录（服务端查）
+# ---------------------------------------------------------------------------
+
+INSURANCE = _load_optional_data("insurance_catalog.json", {"items": [], "count": 0, "source": ""})
+
+
+APPROVAL_META_PATH = ROOT / "data" / "approval_catalog_meta.json"
+APPROVAL_TSV_PATH = ROOT / "data" / "approval_catalog.tsv.gz"
+
+
+def _approval_meta() -> dict:
+    try:
+        return json.loads(APPROVAL_META_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _approval_hits(q: str, limit: int = 500) -> tuple[list[dict], int]:
+    """流式扫描 gz TSV：155k 行约 5MB，不把整表读进内存。"""
+    if not APPROVAL_TSV_PATH.exists():
+        return [], 0
+    import gzip
+
+    needle = q.casefold().strip()
+    meta = _approval_meta()
+    columns = meta.get("columns") or ["name", "approval_number", "dosage_form", "specification",
+                                      "manufacturer", "category"]
+    hits: list[dict] = []
+    total = 0
+    with gzip.open(APPROVAL_TSV_PATH, "rt", encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            if needle and needle not in line.casefold():
+                continue
+            total += 1
+            if len(hits) < limit:
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < len(columns):
+                    parts += [""] * (len(columns) - len(parts))
+                hits.append(dict(zip(columns, parts)))
+    return hits, total
+
+
+def _catalog_page(items, q: str, page: int, page_size: int, fields: tuple[str, ...]) -> dict:
+    needle = q.casefold().strip()
+    matched = []
+    for item in items:
+        text = ' '.join(str(item.get(k) or '') for k in fields).casefold()
+        if needle in text:
+            matched.append(item)
+            if len(matched) >= 2000:  # 防御：超长结果不继续遍历
+                break
+    start = (page - 1) * page_size
+    return {'total': len(matched), 'page': page, 'page_size': page_size,
+            'items': matched[start:start + page_size]}
+
+
+@app.get('/api/catalog/insurance')
+async def catalog_insurance(q: str = Query(default='', max_length=40),
+                            page: int = Query(default=1, ge=1, le=100),
+                            page_size: int = Query(default=20, ge=1, le=100)):
+    items = [x for x in (INSURANCE.get('items') or []) if isinstance(x, dict)]
+    payload = _catalog_page(items, q, page, page_size,
+                           ('name', 'dosage_form', 'insurance_class', 'note', 'section', 'atc_category'))
+    payload.update({'source': INSURANCE.get('source'), 'catalog_count': len(items),
+                    'policy': '按官方公开 PDF 整理的检索结果，费用类别与限定支付以最新官方目录为准。'})
+    return payload
+
+
+@app.get('/api/catalog/approval')
+async def catalog_approval(q: str = Query(default='', max_length=40),
+                           page: int = Query(default=1, ge=1, le=100),
+                           page_size: int = Query(default=20, ge=1, le=100)):
+    hits, total = _approval_hits(q)
+    if total == 0 and not APPROVAL_TSV_PATH.exists():
+        raise HTTPException(503, '服务端未部署批文目录：先执行 python tools/build_catalogs.py --approval <nmpa zip>。')
+    start = (page - 1) * page_size
+    return {'total': total, 'page': page, 'page_size': page_size,
+            'items': hits[start:start + page_size],
+            'catalog_count': _approval_meta().get('count') or total,
+            'official_verification': NMPA_URL,
+            'policy': '数据来自国家药监局公开数据的 2020 快照，批准文号状态请到官网复核。'}
+
+
+@app.get('/api/catalog/stats')
+async def catalog_stats():
+    insurance = [x for x in (INSURANCE.get('items') or []) if isinstance(x, dict)]
+    return {
+        'insurance': {'count': len(insurance),
+                      'by_section': dict(Counter(str(x.get('section')) for x in insurance)),
+                      'source': INSURANCE.get('source')},
+        'approval': {'count': _approval_meta().get('count', 0),
+                     'source': _approval_meta().get('source', '国家药监局公开数据（2020 快照）')},
+        'note': '医保目录可离线检索；批文目录较大，只在服务端查询。',
+    }
 
 
 app.include_router(admin_router)

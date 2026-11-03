@@ -1,3 +1,4 @@
+import re
 """Data integrity and safety constraints for the pediatric learning reference extension."""
 from fastapi.testclient import TestClient
 from app.main import app
@@ -50,7 +51,7 @@ def test_frontend_has_report_features_and_preserves_previous_modules():
     assert 'reportUnit!==t.unit' in js
     assert "cl('lab-low').value=''" in js
     assert 'reviewed' not in js or 'reviewed' in js
-    assert 'pediatric-cn-shell-v1.7.0-direct' in (BASE/'web/sw.js').read_text(encoding='utf-8')
+    assert re.search(r"pediatric-cn-shell-v1\.\d+\.\d+-direct", (BASE/'web/sw.js').read_text(encoding='utf-8'))
 
 def test_static_and_api_catalog_content_equal():
     d1=json.loads((BASE/'data/clinical_extension.json').read_text(encoding='utf-8'))

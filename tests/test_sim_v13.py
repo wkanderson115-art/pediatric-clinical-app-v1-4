@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 import json
 from fastapi.testclient import TestClient
@@ -73,5 +74,5 @@ def test_v13_screen_and_cache_ids():
         assert f'id="{name}"' in h
     assert 'points.orderReview' in js
     assert "s.orderReviews[x.id]" in js
-    assert 'pediatric-cn-shell-v1.7.0-direct' in sw
+    assert re.search(r"pediatric-cn-shell-v1\.\d+\.\d+-direct", sw)
     assert '<span class="version">V1.' in h

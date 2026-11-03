@@ -199,3 +199,15 @@
 .library-chunk{border-bottom:1px dashed #eef1ee;padding-bottom:10px}
 .library-chunk p{white-space:pre-wrap;font-size:13px;line-height:1.7;margin:4px 0}
 .library-locator{font-size:11px;color:#7b8b85;letter-spacing:.02em}
+
+
+/* V1.8 官方目录查询 */
+.catalog-tabs{display:flex;gap:8px;margin:12px 0}
+.catalog-tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;color:#3d574f}
+.catalog-tab.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.catalog-results{display:grid;gap:10px;margin-top:10px}
+.catalog-item{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.catalog-item h3{margin:0 0 6px;font-size:15px}
+.catalog-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#5f736c;padding:2px 0}
+.catalog-row strong{color:#17352f;font-weight:600;text-align:right}
+.catalog-note{margin:6px 0 0;font-size:12px;color:#886014;background:#fff7e7;border-radius:8px;padding:6px 8px}

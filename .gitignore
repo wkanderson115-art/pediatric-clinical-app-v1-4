@@ -11,3 +11,6 @@ ipa_dl/
 data/library/raw/*.pdf
 data/library/raw/*.epub
 data/library/raw/*.txt
+data/library/raw/*.zip
+_cat/
+*.pdf

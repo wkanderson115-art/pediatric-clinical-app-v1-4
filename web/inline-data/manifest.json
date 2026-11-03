@@ -39,6 +39,10 @@
     "file": "medical_audit.js",
     "bytes": 3508510
   },
+  "insurance_catalog.json": {
+    "file": "insurance_catalog.js",
+    "bytes": 595328
+  },
   "library/books.json": {
     "file": "library__books.js",
     "bytes": 1030
