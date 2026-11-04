@@ -74,4 +74,4 @@ def test_frontend_wires_catalogs():
         assert token in sw, token
     for token in ('api/catalog/', 'insuranceOffline', 'catalog-query'):
         assert token in js, token
-    assert client.get('/api/status').json()['version'].startswith('1.9')
+    assert client.get('/api/status').json()['version'].startswith('1.1')

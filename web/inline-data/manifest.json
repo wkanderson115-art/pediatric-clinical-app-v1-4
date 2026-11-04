@@ -43,6 +43,14 @@
     "file": "insurance_catalog.js",
     "bytes": 595328
   },
+  "library/chapters.json": {
+    "file": "library__chapters.js",
+    "bytes": 15632
+  },
+  "library/system_map.json": {
+    "file": "library__system_map.js",
+    "bytes": 11874
+  },
   "library/books.json": {
     "file": "library__books.js",
     "bytes": 1374

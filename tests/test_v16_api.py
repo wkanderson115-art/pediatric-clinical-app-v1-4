@@ -60,7 +60,7 @@ def test_relations_endpoint():
 
 def test_content_version_fingerprints():
     data = client.get('/api/content/version').json()
-    assert data['app_version'] == '1.9.1'
+    assert data['app_version'] == '1.10.0'
     assert data['files']['drug_formulary.json']['exists'] is True
     assert len(data['files']['drug_formulary.json']['sha256']) == 16
     assert data['counts']['formulary_drugs'] >= 110
@@ -72,6 +72,6 @@ def test_status_reports_v16_counts(monkeypatch):
     monkeypatch.delenv('TIANAPI_KEY', raising=False)
     monkeypatch.delenv('MOSENG_API_KEY', raising=False)
     data = client.get('/api/status').json()
-    assert data['version'] == '1.9.1'
+    assert data['version'] == '1.10.0'
     assert data['offline']['dose_rules'] >= 60
     assert data['offline']['relations'] >= 300

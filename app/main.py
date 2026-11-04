@@ -34,7 +34,7 @@ NMPA_URL = "https://datasearch.nmpa.gov.cn/"
 NMPA_HELP = "https://datasearch.nmpa.gov.cn/datasearch/search-help.html"
 NHC_GUIDE = "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml"
 
-app = FastAPI(title="儿科临床药典 · 中国版", version="1.9.1", docs_url=None, redoc_url=None)
+app = FastAPI(title="儿科临床药典 · 中国版", version="1.10.0", docs_url=None, redoc_url=None)
 LEARNING_PATH = ROOT / "data" / "learning.json"
 LEARNING = json.loads(LEARNING_PATH.read_text(encoding="utf-8"))
 CLINICAL = json.loads((ROOT / "data" / "clinical_extension.json").read_text(encoding="utf-8"))
@@ -67,6 +67,17 @@ def _load_library_books() -> dict:
 
 
 LIBRARY = _load_library_books()
+
+
+def _load_library_extra(name: str) -> dict:
+    try:
+        return json.loads((ROOT / "data" / "library" / name).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"books": {}, "systems": [], "unmapped": []}
+
+
+CHAPTERS = _load_library_extra("chapters.json")
+SYSTEM_MAP = _load_library_extra("system_map.json")
 
 
 @lru_cache(maxsize=16)
@@ -1086,40 +1097,166 @@ async def library_index():
     }
 
 
+@lru_cache(maxsize=1)
+def _library_index() -> tuple[tuple[dict, ...], dict[str, dict]]:
+    """把每本书的章节区间挂到块上，形成一次构建、反复检索的索引。"""
+    chapter_by_chunk: dict[str, dict[int, dict]] = {}
+    for book_id, book in (CHAPTERS.get("books") or {}).items():
+        mapping: dict[int, dict] = {}
+        for chapter in book.get("chapters") or []:
+            for index in range(int(chapter.get("chunk_start") or 0), int(chapter.get("chunk_end") or -1) + 1):
+                mapping[index] = chapter
+        chapter_by_chunk[book_id] = mapping
+    rows: list[dict] = []
+    for info in (LIBRARY.get("books") or []):
+        if not isinstance(info, dict):
+            continue
+        book_id = str(info.get("id"))
+        chapters = chapter_by_chunk.get(book_id, {})
+        for index, chunk in enumerate(_library_chunks(book_id)):
+            chapter = chapters.get(index) or {}
+            rows.append({
+                "book_id": book_id,
+                "book_title": info.get("title"),
+                "chunk": index,
+                "locator": chunk.get("p") or "",
+                "text": str(chunk.get("t") or ""),
+                "chapter_id": chapter.get("id", ""),
+                "chapter_no": chapter.get("no", 0),
+                "chapter_title": chapter.get("title", ""),
+                "system": chapter.get("system", ""),
+            })
+    return tuple(rows), chapter_by_chunk
+
+
+def _snippet(text: str, needle: str, width: int = 70) -> tuple[str, int]:
+    pos = text.find(needle)
+    if pos < 0:
+        return text[:width * 2], -1
+    start = max(0, pos - width)
+    end = min(len(text), pos + len(needle) + width)
+    return text[start:end], pos - start
+
+
 @app.get('/api/library/search')
-async def library_search(q: str = Query(min_length=1, max_length=120),
+async def library_search(q: str = Query(min_length=1, max_length=60),
                         book: str = Query(default='', max_length=80),
-                        limit: int = Query(default=20, ge=1, le=50)):
+                        system: str = Query(default='', max_length=40),
+                        chapter: str = Query(default='', max_length=80),
+                        page: int = Query(default=1, ge=1, le=200),
+                        page_size: int = Query(default=20, ge=1, le=50)):
     needle = q.strip()
     if not needle:
         raise HTTPException(422, '请输入检索词。')
-    books = [b for b in (LIBRARY.get('books') or []) if isinstance(b, dict)]
-    targets = [b for b in books if not book or b.get('id') == book]
-    if book and not targets:
-        raise HTTPException(404, '书库中没有该电子书。')
-    hits = []
-    total = 0
-    for info in targets:
-        for chunk in _library_chunks(str(info.get('id'))):
-            text = str(chunk.get('t') or '')
-            pos = text.find(needle)
-            if pos < 0:
+    rows, _ = _library_index()
+    allowed_systems: set[str] | None = None
+    if system:
+        allowed_systems = {c['chapter_id'] for s_ in (SYSTEM_MAP.get('systems') or [])
+                           if s_.get('id') == system for c in (s_.get('chapters') or [])}
+        if not allowed_systems:
+            raise HTTPException(404, '学习系统不存在或还没有关联章节。')
+
+    scored = []
+    for row in rows:
+        if book and row['book_id'] != book:
+            continue
+        if allowed_systems is not None and row['chapter_id'] not in allowed_systems:
+            continue
+        if chapter and row['chapter_id'] != chapter:
+            continue
+        text = row['text']
+        count = text.count(needle)
+        in_title = needle in row['chapter_title']
+        in_locator = needle in row['locator']
+        if not (count or in_title or in_locator):
+            continue
+        score = min(count, 5) + (10 if in_title else 0) + (4 if in_locator else 0) + (3 if count else 0)
+        snippet, hit_at = _snippet(text, needle)
+        scored.append({
+            'book_id': row['book_id'], 'book_title': row['book_title'],
+            'chunk': row['chunk'], 'locator': row['locator'],
+            'chapter_id': row['chapter_id'], 'chapter_no': row['chapter_no'],
+            'chapter_title': row['chapter_title'], 'system': row['system'],
+            'score': score, 'snippet': snippet, 'hit_at': hit_at,
+        })
+    scored.sort(key=lambda item: (-item['score'], item['chapter_no'], item['chunk']))
+
+    # 按章聚合：同一章里的几十处命中合并成一条，避免结果页被同章碎片刷屏
+    groups: dict[str, dict] = {}
+    for item in scored:
+        key = item['chapter_id'] or (item['book_id'] + '|' + item['locator'].split(' · ')[0])
+        group = groups.get(key)
+        if group is None:
+            group = {
+                'key': key, 'book_id': item['book_id'], 'book_title': item['book_title'],
+                'chapter_id': item['chapter_id'], 'chapter_title': item['chapter_title'],
+                'chapter_no': item['chapter_no'], 'system': item['system'],
+                'count': 0, 'first_chunk': item['chunk'], 'snippets': [],
+            }
+            groups[key] = group
+        group['count'] += 1
+        if len(group['snippets']) < 3:
+            group['snippets'].append({'chunk': item['chunk'], 'locator': item['locator'],
+                                      'snippet': item['snippet'], 'score': item['score']})
+    ranked = sorted(groups.values(), key=lambda g: (-g['count'], g['chapter_no']))
+    counts = Counter()
+    for item in scored:
+        counts[(item['book_id'], item['book_title'])] += 1
+    system_counts = Counter(item['system'] or '未归类' for item in scored)
+    start = (page - 1) * page_size
+    items = scored[start:start + page_size]
+    return {
+        'query': q, 'total': len(scored), 'page': page, 'page_size': page_size,
+        'items': items,
+        'groups': ranked[:40],
+        'group_total': len(ranked),
+        'facets': {
+            'books': [{'id': bid, 'title': title, 'count': count} for (bid, title), count in counts.most_common()],
+            'systems': [{'id': sid, 'count': count} for sid, count in system_counts.most_common(10)],
+        },
+        'policy': '命中是原文子串匹配并按章名加权排序，不代表用药或诊断结论；请回到原书页面核对。',
+    }
+
+
+@app.get('/api/library/chapters')
+async def library_chapter_index(book: str = Query(default='', max_length=80)):
+    books = CHAPTERS.get('books') or {}
+    names = {s.get('id'): s.get('name') for s in (SYSTEM_MAP.get('systems') or [])}
+    output = []
+    for book_id, info in books.items():
+        if book and book_id != book:
+            continue
+        chapters = [dict(c, system_name=names.get(c.get('system', ''), '')) for c in info.get('chapters') or []]
+        output.append({'id': book_id, 'title': info.get('title'), 'volume': info.get('volume'),
+                       'pages': info.get('pages'), 'chapters': chapters})
+    return {'books': output, 'systems': [{'id': s.get('id'), 'name': s.get('name'),
+                                          'count': len(s.get('chapters') or [])}
+                                         for s in (SYSTEM_MAP.get('systems') or [])],
+            'unmapped': SYSTEM_MAP.get('unmapped') or []}
+
+
+@app.get('/api/library/chapter/{chapter_id}')
+async def library_chapter_detail(chapter_id: str):
+    for book_id, info in (CHAPTERS.get('books') or {}).items():
+        for chapter in info.get('chapters') or []:
+            if chapter.get('id') != chapter_id:
                 continue
-            total += 1
-            if len(hits) >= limit:
-                continue
-            start = max(0, pos - 40)
-            hits.append({
-                'book_id': info.get('id'),
-                'book_title': info.get('title'),
-                'chunk': chunk.get('i'),
-                'locator': chunk.get('p'),
-                'snippet': text[start:pos + len(needle) + 60],
-                'match_at': pos - start,
-            })
-    return {'query': q, 'total': total, 'returned': len(hits), 'items': hits,
-            'displayed_books': len(targets),
-            'policy': '命中是原文子串匹配，不代表用药或诊断结论；请回到原书页面核对。'}
+            chunks = _library_chunks(book_id)
+            start, end = int(chapter['chunk_start']), int(chapter['chunk_end'])
+            items = [{'i': index, 'p': c.get('p'), 't': c.get('t')}
+                     for index, c in enumerate(chunks) if start <= index <= end][:400]
+            return {'book_id': book_id, 'book_title': info.get('title'), 'chapter': chapter, 'items': items}
+    raise HTTPException(404, '找不到该章节。')
+
+
+@app.get('/api/learning/{system_id}/books')
+async def learning_system_books(system_id: str):
+    for system in SYSTEM_MAP.get('systems') or []:
+        if system.get('id') == system_id:
+            return {'system': {'id': system.get('id'), 'name': system.get('name')},
+                    'chapters': system.get('chapters') or [],
+                    'note': '章节来自已导入电子书的目录，点开可跳到原书正文。'}
+    raise HTTPException(404, '学习系统不存在。')
 
 
 @app.get('/api/library/{book_id}/chunks')
