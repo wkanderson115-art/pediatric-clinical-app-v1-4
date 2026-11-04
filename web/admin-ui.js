@@ -4,7 +4,7 @@
 (() => {
   const el=id=>document.getElementById(id);
   const SERVICES=[
-    ['deepseekKey','DeepSeek API Key','用于 AI 学习问答和病历辅助质控。默认模型为 deepseek-v4.1-flash。'],
+    ['deepseekKey','DeepSeek API Key','用于 AI 学习问答和病历辅助质控。默认模型为 deepseek-flash。'],
     ['tianapiKey','天聚数行 API Key','用于药品资料检索。'],
     ['mosengKey','摩熵数科 API Key','用于说明书与批准文号检索；优先于天聚数行。']
   ];
@@ -23,9 +23,14 @@
     const baseLabel=document.createElement('label');baseLabel.textContent='OpenAI 兼容 API 地址';
     const baseInput=document.createElement('input');baseInput.value=cfg.deepseekBaseUrl||'https://api.deepseek.com';baseInput.maxLength=240;baseInput.autocomplete='url';baseInput.placeholder='https://api.deepseek.com';baseLabel.append(baseInput);
     const label=document.createElement('label');label.textContent='看图/建议模型 ID';
-    const input=document.createElement('input');input.value=cfg.model||'deepseek-v4.1-flash';input.maxLength=120;input.autocomplete='off';label.append(input);
-    const save=document.createElement('button');save.type='button';save.className='primary-button';save.textContent='保存模型设置';save.onclick=()=>{DirectAPI.save({deepseekBaseUrl:baseInput.value.trim().replace(/\/+$/,'')||'https://api.deepseek.com',model:input.value.trim()||'deepseek-v4.1-flash'});feedback('模型设置已保存在当前设备。');};
-    model.append(baseLabel,label,save);root.append(model);
+    const input=document.createElement('input');input.value=cfg.deepseekModel||cfg.model||'deepseek-flash';input.maxLength=120;input.autocomplete='off';label.append(input);
+    const save=document.createElement('button');save.type='button';save.className='primary-button';save.textContent='保存模型设置';save.onclick=()=>{DirectAPI.save({deepseekBaseUrl:baseInput.value.trim().replace(/\/+$/,'')||'https://api.deepseek.com',deepseekModel:input.value.trim()||'deepseek-flash'});feedback('模型设置已保存在当前设备。');};
+    const accessLabel=document.createElement('label');accessLabel.textContent='服务端访问码 APP_ACCESS_CODE（可选，直连被跨域拦截时自动改走服务端）';
+    const accessInput=document.createElement('input');accessInput.type='password';accessInput.autocomplete='new-password';accessInput.maxLength=120;accessInput.value=cfg.appAccessCode||'';accessInput.placeholder='至少 8 位，与服务端 .env 一致';accessLabel.append(accessInput);
+    const accessSave=document.createElement('button');accessSave.type='button';accessSave.className='outline-button';accessSave.textContent='保存访问码';accessSave.onclick=()=>{DirectAPI.save({appAccessCode:accessInput.value.trim()});render();feedback('访问码已保存在当前设备。');};
+    const testBtn=document.createElement('button');testBtn.type='button';testBtn.className='primary-button';testBtn.textContent='测试 DeepSeek 连接';
+    testBtn.onclick=async()=>{testBtn.disabled=true;feedback('测试中…');try{const d=await DirectAPI.diagnose();feedback('模型 '+d.model+' · '+(d.reachable?'网络可达':'网络不可达')+' · '+d.detail, !d.reachable);}catch(e){feedback('测试失败：'+(e.message||e),true);}finally{testBtn.disabled=false;}};
+    model.append(baseLabel,label,save,accessLabel,accessSave,testBtn);root.append(model);
     for(const [key,name,description] of SERVICES){
       const section=document.createElement('section');section.className='clinic-panel admin-service';
       const heading=document.createElement('h2');heading.textContent=name;

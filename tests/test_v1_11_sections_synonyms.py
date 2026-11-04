@@ -85,5 +85,5 @@ def test_frontend_shows_expansion_and_section():
     html = (ROOT / 'web/index.html').read_text(encoding='utf-8')
     assert '已扩展' in js
     assert 'group.sections' in js
-    assert 'V1.11' in html
-    assert client.get('/api/status').json()['version'].startswith('1.11')
+    assert 'V1.1' in html
+    assert client.get('/api/status').json()['version'].startswith('1.12')

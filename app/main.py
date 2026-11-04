@@ -34,7 +34,7 @@ NMPA_URL = "https://datasearch.nmpa.gov.cn/"
 NMPA_HELP = "https://datasearch.nmpa.gov.cn/datasearch/search-help.html"
 NHC_GUIDE = "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml"
 
-app = FastAPI(title="儿科临床药典 · 中国版", version="1.11.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="儿科临床药典 · 中国版", version="1.12.0", docs_url=None, redoc_url=None)
 LEARNING_PATH = ROOT / "data" / "learning.json"
 LEARNING = json.loads(LEARNING_PATH.read_text(encoding="utf-8"))
 CLINICAL = json.loads((ROOT / "data" / "clinical_extension.json").read_text(encoding="utf-8"))
@@ -385,7 +385,7 @@ async def custom_fetch(query: str, page: int) -> Any:
     body.setdefault(cfg.get("query_param") or "q", query)
     if cfg.get("page_param"):
         body.setdefault(cfg["page_param"], page)
-    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+    async with http_client(15) as client:
         if cfg.get("method") == "POST":
             if cfg.get("format") == "form":
                 response = await client.post(cfg["url"], params=params, data=body, headers=headers)
@@ -419,7 +419,7 @@ def normalize_approvals(payload: dict) -> list[Approval]:
 
 
 async def moseng_post(url: str, query: dict) -> dict:
-    async with httpx.AsyncClient(timeout=12, follow_redirects=False) as client:
+    async with http_client(12) as client:
         response = await client.post(
             url, headers={'Authorization': get_value('MOSENG_API_KEY'), 'Content-Type': 'application/json'},
             json=query)
@@ -467,7 +467,7 @@ async def search(q: str = Query(min_length=2, max_length=60), page: int = Query(
         raise HTTPException(503, '尚未配置中国药品说明书 API，请参考 README 设置服务端密钥。')
     try:
         if p == 'tianapi':
-            async with httpx.AsyncClient(timeout=12, follow_redirects=False) as client:
+            async with http_client(12) as client:
                 response = await client.post(TIANAPI_URL, data={
                     'key': get_value('TIANAPI_KEY'), 'word': q, 'num': '10', 'page': str(page)})
                 response.raise_for_status()
@@ -610,7 +610,7 @@ async def ask(payload: QuestionInput, request: Request):
             '下面的资料是未经专家逐条审核的编辑性提纲，不得宣称其即为正式指南正文。')},
         {'role':'user','content': '匿名学习问题：'+question+'\n可供参考的本地学习提纲（可能与问题不相关）：'+json.dumps(context,ensure_ascii=False)}]
     try:
-        async with httpx.AsyncClient(timeout=28, follow_redirects=False) as client:
+        async with http_client(28) as client:
             response = await client.post(url, headers={'Authorization':'Bearer '+get_value('AI_API_KEY'),
                                                         'Content-Type':'application/json'},
                 json={'model':DEEPSEEK_MODEL, 'messages':messages,
@@ -624,6 +624,104 @@ async def ask(payload: QuestionInput, request: Request):
     return {'mode':'ai', 'question':question, 'answer':answer, 'matches':matches,
             'evidence':'AI生成的学习分析，尚未经过医生复核；不能作为确诊和处方依据',
             'external_sent':True}
+
+
+class AIChatInput(BaseModel):
+    messages: list[dict]
+    max_tokens: int = 1300
+
+
+
+
+def http_client(timeout: float = 20.0):
+    """统一客户端：默认不读系统代理环境变量（本机 NO_PROXY 损坏会让 httpx 报 InvalidURL）。
+
+    需要走代理时设置 USE_ENV_PROXY=1，nx 仍会读取 HTTP_PROXY/HTTPS_PROXY。
+    """
+    trust = bool(os.environ.get('USE_ENV_PROXY', '').strip())
+    return httpx.AsyncClient(timeout=timeout, follow_redirects=False, trust_env=trust)
+
+
+def ai_base_url() -> str:
+    return (os.environ.get('AI_API_URL', 'https://api.deepseek.com/chat/completions').strip()
+            or 'https://api.deepseek.com/chat/completions')
+
+
+def ai_upstream_error(exc: Exception, response=None) -> str:
+    status = getattr(response, 'status_code', None)
+    body = ''
+    if response is not None:
+        try:
+            body = (response.text or '')[:300]
+        except Exception:
+            body = ''
+    if status == 401:
+        return 'DeepSeek 认证失败（401）：API Key 无效或已被删除。'
+    if status == 402:
+        return 'DeepSeek 余额不足（402）：请到 platform.deepseek.com 充值。'
+    if status == 400:
+        return 'DeepSeek 请求被拒（400）：模型名无效，只支持 deepseek-flash / deepseek-v4-pro。' + (f' 上游：{body[:160]}' if body else '')
+    if status == 429:
+        return 'DeepSeek 触发限流（429）：稍后重试或降低频率。'
+    if status:
+        return f'DeepSeek 返回 HTTP {status}：{body[:160]}'
+    return f'连接 DeepSeek 失败：{type(exc).__name__}'
+
+
+@app.post('/api/ai/chat')
+async def ai_chat(payload: AIChatInput, request: Request):
+    """服务端 AI 代理：Key 只在服务器加密文件，前端只带 APP_ACCESS_CODE。"""
+    access_code = os.environ.get('APP_ACCESS_CODE', '')
+    if len(access_code) < 8:
+        raise HTTPException(503, '服务端 AI 未启用：需要设置至少 8 位 APP_ACCESS_CODE。')
+    if not secrets.compare_digest(request.headers.get('X-App-Access', ''), access_code):
+        raise HTTPException(403, '访问码不正确。')
+    if not get_value('AI_API_KEY'):
+        raise HTTPException(503, '服务端未配置 AI_API_KEY：可在管理中心写入，或改用直连模式。')
+    if not payload.messages:
+        raise HTTPException(422, 'messages 不能为空。')
+    try:
+        async with http_client(40) as client:
+            response = await client.post(
+                ai_base_url(),
+                headers={'Authorization': 'Bearer ' + get_value('AI_API_KEY'),
+                         'Content-Type': 'application/json'},
+                json={'model': DEEPSEEK_MODEL, 'messages': payload.messages,
+                      'temperature': 0.2, 'max_tokens': min(max(payload.max_tokens, 64), 4000)})
+            if response.status_code >= 400:
+                raise HTTPException(502, ai_upstream_error(Exception('upstream'), response))
+            data = response.json()
+            answer = str(data['choices'][0]['message']['content']).strip()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(502, ai_upstream_error(exc, exc.response)) from exc
+    except Exception as exc:
+        raise HTTPException(502, ai_upstream_error(exc)) from exc
+    return {'answer': answer, 'model': DEEPSEEK_MODEL, 'external_sent': True}
+
+
+@app.get('/api/ai/diagnose')
+async def ai_diagnose():
+    key = bool(get_value('AI_API_KEY'))
+    access_code = os.environ.get('APP_ACCESS_CODE', '')
+    reachable = None
+    detail = ''
+    try:
+        async with http_client(15) as client:
+            headers = {'Authorization': 'Bearer ' + get_value('AI_API_KEY')} if key else {}
+            response = await client.get('https://api.deepseek.com/models', headers=headers)
+            reachable = True
+            if response.status_code == 200:
+                detail = 'Key 有效，可直接调用'
+            elif response.status_code == 401:
+                detail = '网络可达，但 Key 无效或未填写' if key else '网络可达；尚未填写服务端 Key'
+            else:
+                detail = f'网络可达，上游返回 HTTP {response.status_code}'
+    except Exception as exc:  # 代理环境变量冲突、DNS、TLS 都归到这里，别让诊断接口自己 500
+        reachable = False
+        detail = f'连不上 api.deepseek.com：{type(exc).__name__}: {str(exc)[:120]}'
+    return {'server_key_configured': key, 'model': DEEPSEEK_MODEL, 'base_url': ai_base_url(),
+            'access_code_ready': len(access_code) >= 8, 'reachable': reachable, 'detail': detail,
+            'hint': '模型名必须是 deepseek-flash 或 deepseek-v4-pro；直连被跨域拦截时填 APP_ACCESS_CODE 走服务端。'}
 
 
 # V0.4: 中国儿科临床学习与病历质控。官方规范是引用链接，未嵌入未经授权的全文。
@@ -681,7 +779,7 @@ async def chart_review(payload: ChartReviewInput, request: Request):
     ]
     url = ai_config()
     try:
-        async with httpx.AsyncClient(timeout=35, follow_redirects=False) as client:
+        async with http_client(35) as client:
             response=await client.post(url,headers={'Authorization':'Bearer '+get_value('AI_API_KEY'),'Content-Type':'application/json'},
                 json={'model':DEEPSEEK_MODEL,'messages':ai_messages,'temperature':0.1,'max_tokens':2000})
             response.raise_for_status()

@@ -101,4 +101,4 @@ def test_frontend_navigation_wiring():
     for token in ('chapters.json', 'system_map.json', 'groupCard', 'openChapter'):
         assert token in js, token
     assert 'system_map.json' in study
-    assert client.get('/api/status').json()['version'].startswith('1.11')
+    assert client.get('/api/status').json()['version'].startswith('1.12')
