@@ -31,6 +31,14 @@ CHAPTER_SYSTEM = {
     33: 'endo', 35: 'urinary', 36: 'blood', 37: 'skin', 38: 'msk', 39: 'msk',
     40: 'eyeear', 41: 'eyeear', 42: 'eyeear', 43: 'emergency', 44: 'emergency',
     45: 'emergency', 46: 'blood',
+    # 原先未归类的 7 章，按内容补挂（可再改）
+    1: 'growth',     # 儿科学绪论：学科总论
+    5: 'case',       # 儿科伦理与医学人文：沟通与决策
+    10: 'msk',       # 物理与康复疗法
+    11: 'growth',    # 中国儿科学发展史
+    12: 'emergency',  # 儿科护理：操作与急救配合
+    32: 'growth',    # 遗传与染色体疾病
+    34: 'growth',    # 儿童心理卫生
 }
 
 TITLE_ALIASES = {
@@ -81,6 +89,59 @@ def keywords_of(texts: list[str], limit: int = 10) -> list[str]:
     return [term for term, count in counter.most_common(limit * 3) if count >= 3][:limit]
 
 
+
+SECTION_RE = re.compile(
+    r'(?:^|[。；;\n]|\s{2,})\s*'
+    r'(?:'
+    r'第\s*([0-9一二三四五六七八九十百]{1,3})\s*节'
+    r'|([一二三四五六七八九十]{1,3})\s*、'
+    r'|[（(〔]\s*([一二三四五六七八九十]{1,3})\s*[）)〕]'
+    r')'
+    r'\s*([^。；;\n]{0,24})')
+CJK_RE = re.compile(r'[\u4e00-\u9fff]')
+
+
+def clean_heading(marker: str, tail: str) -> str:
+    tail = tail.strip(' ·．，,、:：')
+    for symbol in ('，', ',', '：', ':', '、', '（', '(', '·'):
+        if symbol in tail:
+            tail = tail.split(symbol)[0]
+    tail = tail.strip(' ·．')[:14]
+    if not tail or sum(ch.isdigit() for ch in tail) / max(len(tail), 1) > 0.4:
+        return ''
+    return (marker + tail)[:22]
+
+
+def marker_text(match: 're.Match') -> str:
+    section, number, paren, _ = match.group(1), match.group(2), match.group(3), match.group(4)
+    if section:
+        return f'第{section}节 '
+    if number:
+        return f'{number}、'
+    return f'（{paren}）'
+
+
+def sections_of(chunk_texts: list[tuple[int, str]], chapter_title: str, limit: int = 80) -> list[dict]:
+    """按「第X节 / 一、/（一）」切小节；OCR 文本里标号前后常带空格，正则做了容错。"""
+    sections: list[dict] = []
+    for chunk_index, text in chunk_texts:
+        for match in SECTION_RE.finditer(text):
+            tail = match.group(4)
+            if '±' in tail or '=' in tail:
+                continue
+            title = clean_heading(marker_text(match), tail)
+            if not title or len(CJK_RE.findall(title)) < 2:
+                continue
+            if sections and sections[-1]['title'] == title:
+                continue
+            sections.append({'title': title, 'chunk': chunk_index, 'offset': match.start()})
+            if len(sections) >= limit:
+                return sections
+    if not sections:
+        sections.append({'title': chapter_title, 'chunk': chunk_texts[0][0] if chunk_texts else 0, 'offset': 0})
+    return sections
+
+
 def build_book(book_id: str) -> dict | None:
     path = DATA / 'library' / f'{book_id}.json'
     if not path.exists():
@@ -109,6 +170,7 @@ def build_book(book_id: str) -> dict | None:
                     'keywords': [],
                     'system': CHAPTER_SYSTEM.get(no, ''),
                     '_texts': [],
+                    '_chunk_texts': [],
                 }
                 chapters.append(current)
         if current is None:
@@ -117,9 +179,12 @@ def build_book(book_id: str) -> dict | None:
         text = str(chunk.get('t') or '')
         current['chars'] += len(text)
         current['_texts'].append(text)
+        current['_chunk_texts'].append((index, text))
     for chapter in chapters:
+        chunk_texts = chapter.pop('_chunk_texts')
         chapter['keywords'] = keywords_of(chapter.pop('_texts'))
         chapter['chunks'] = chapter['chunk_end'] - chapter['chunk_start'] + 1
+        chapter['sections'] = sections_of(chunk_texts, chapter['title'])
     return {
         'id': book_id,
         'title': book.get('title'),

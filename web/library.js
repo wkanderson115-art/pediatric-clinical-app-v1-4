@@ -207,6 +207,7 @@
       group.book_title,
       group.system ? systemName(group.system) : '',
       group.chapter_title || '',
+      (group.sections && group.sections[0]) || '',
     ].filter(Boolean).join(' · ');
     card.append(node('small', meta + ' · 命中 ' + group.count + ' 处', 'library-hit-book'));
 
@@ -266,7 +267,9 @@
       const data = await response.json();
       if (count) {
         const names = (data.facets && data.facets.books || []).map(b => b.title + ' ' + b.count).join('、');
-        count.textContent = '命中 ' + data.total + ' 处' + (names ? '（' + names + '）' : '');
+        const extra = (data.expanded && data.expanded.length)
+          ? ' · 已扩展：' + data.expanded.slice(0, 4).join('、') : '';
+        count.textContent = '命中 ' + data.total + ' 处' + (names ? '（' + names + '）' : '') + extra;
       }
       if (!data.total) { root.append(node('p', '没有命中。尝试更短的通用词（如「肺炎」「低钠」），或切换系统/章节筛选。', 'empty')); return; }
       const groups = data.groups || [];

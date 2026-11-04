@@ -45,11 +45,11 @@
   },
   "library/chapters.json": {
     "file": "library__chapters.js",
-    "bytes": 15632
+    "bytes": 208824
   },
   "library/system_map.json": {
     "file": "library__system_map.js",
-    "bytes": 11874
+    "bytes": 11875
   },
   "library/books.json": {
     "file": "library__books.js",
@@ -62,6 +62,10 @@
   "library/nice_ng1.json": {
     "file": "library__nice_ng1.js",
     "bytes": 47528
+  },
+  "library/synonyms.json": {
+    "file": "library__synonyms.js",
+    "bytes": 4224
   },
   "library/zhufutang9a.json": {
     "file": "library__zhufutang9a.js",
