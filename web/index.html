@@ -48,7 +48,7 @@
   <header class="topbar">
     <div class="logo" aria-hidden="true">✳</div>
     <div class="brand"><strong>儿科临床药典</strong><small>中国药品说明书 · 专业学习版</small></div>
-    <span class="version">V1.12 AI 接入修复</span>
+    <span class="version">V1.13 原书精读</span>
   </header>
 
   <main class="main">
@@ -84,8 +84,9 @@
       <div class="feature-strip"><button type="button" data-page="global">🔍 全局检索 ›</button><button type="button" data-page="library">📚 离线书库 ›</button><button type="button" data-page="catalogs">🗂 目录查询 ›</button><button type="button" data-page="clinic">🩺 系统诊疗路径 ›</button><button type="button" data-page="labs">🧪 化验单全解 ›</button><button type="button" data-page="exams">🩻 检查报告解读 ›</button><button type="button" data-page="infusion">💧 输液安全专题 ›</button><button type="button" data-page="chart">📋 病历书写质控 ›</button><button type="button" data-page="sim">🏥 全真模拟接诊 ›</button><button type="button" data-page="quiz">🎓 循证病例练习 ›</button><button type="button" data-page="evidence">📚 来源与审校状态 ›</button><button type="button" data-page="audit">🔎 医学逐条审校 ›</button></div>
       <div class="topic-stack" id="study-topics"></div>
       <div class="clinic-panel" id="study-books-panel">
-        <h2>📖 原书章节索引（按系统归类）</h2>
-        <p class="subtext">已导入电子书按 17 个学习系统自动归类：点开系统 → 选章节 → 直接跳到原书正文。归类规则在 tools/build_chapters.py 的 CHAPTER_SYSTEM 表里，可自行调整后重跑。</p>
+        <h2>📖 原书精读（诸福棠第9版·按系统归类）</h2>
+        <p class="subtext" id="study-books-summary">正在加载原书导航…</p>
+        <p class="subtext">每章给出页区间、字数与原书概述；点小节直接跳到书库正文对应块。概述为 OCR 原文（可能有错字），临床核对以原书与最新指南为准。</p>
         <div id="study-books"></div>
       </div>
       <div class="reference-box"><h3>中国权威资料入口</h3><a href="https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml" target="_blank" rel="noopener noreferrer">儿童肺炎支原体肺炎诊疗指南（2025年版） <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/" target="_blank" rel="noopener noreferrer">国家药监局数据查询 <span>↗</span></a><a href="https://datasearch.nmpa.gov.cn/datasearch/search-help.html" target="_blank" rel="noopener noreferrer">国家药监局查询帮助 <span>↗</span></a></div>

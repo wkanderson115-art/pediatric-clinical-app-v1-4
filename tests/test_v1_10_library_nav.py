@@ -80,7 +80,7 @@ def test_learning_system_books_endpoint():
     assert data['system']['id'] == 'resp'
     assert data['chapters']
     chapter = data['chapters'][0]
-    for key in ('book_id', 'chapter_id', 'title', 'pages', 'chunk_start'):
+    for key in ('book_id', 'chapter_id', 'title', 'page_range', 'chars', 'sections'):
         assert key in chapter
 
 
@@ -100,5 +100,5 @@ def test_frontend_navigation_wiring():
         assert token in html, token
     for token in ('chapters.json', 'system_map.json', 'groupCard', 'openChapter'):
         assert token in js, token
-    assert 'system_map.json' in study
-    assert client.get('/api/status').json()['version'].startswith('1.12')
+    assert ('learning_books.json' in study) or ('system_map.json' in study)
+    assert client.get('/api/status').json()['version'].startswith('1.13')

@@ -34,7 +34,7 @@ NMPA_URL = "https://datasearch.nmpa.gov.cn/"
 NMPA_HELP = "https://datasearch.nmpa.gov.cn/datasearch/search-help.html"
 NHC_GUIDE = "https://www.nhc.gov.cn/yzygj/c100068/202509/19e7145436b049a68d4ba8c2060dfa56.shtml"
 
-app = FastAPI(title="儿科临床药典 · 中国版", version="1.12.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="儿科临床药典 · 中国版", version="1.13.0", docs_url=None, redoc_url=None)
 LEARNING_PATH = ROOT / "data" / "learning.json"
 LEARNING = json.loads(LEARNING_PATH.read_text(encoding="utf-8"))
 CLINICAL = json.loads((ROOT / "data" / "clinical_extension.json").read_text(encoding="utf-8"))
@@ -78,6 +78,14 @@ def _load_library_extra(name: str) -> dict:
 
 CHAPTERS = _load_library_extra("chapters.json")
 SYSTEM_MAP = _load_library_extra("system_map.json")
+def _load_learning_books() -> dict:
+    try:
+        return json.loads((ROOT / "data" / "learning_books.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"systems": [], "total_chapters": 0, "total_sections": 0}
+
+
+LEARNING_BOOKS = _load_learning_books()
 SYNONYMS = _load_library_extra("synonyms.json")
 
 
@@ -1387,12 +1395,35 @@ async def library_chapter_detail(chapter_id: str):
 
 @app.get('/api/learning/{system_id}/books')
 async def learning_system_books(system_id: str):
-    for system in SYSTEM_MAP.get('systems') or []:
+    """学习系统 → 原书章节 + 章级概述 + 小节导航（数据来自 tools/build_learning_from_books.py）。"""
+    for system in (LEARNING_BOOKS.get('systems') or []):
         if system.get('id') == system_id:
             return {'system': {'id': system.get('id'), 'name': system.get('name')},
                     'chapters': system.get('chapters') or [],
-                    'note': '章节来自已导入电子书的目录，点开可跳到原书正文。'}
+                    'section_count': system.get('section_count', 0),
+                    'chars': system.get('chars', 0),
+                    'note': '摘要为原书真实段落（OCR 可能有错字）；点小节跳书库正文核对。'}
+    for system in SYSTEM_MAP.get('systems') or []:
+        if system.get('id') == system_id:
+            return {'system': {'id': system.get('id'), 'name': system.get('name')},
+                    'chapters': system.get('chapters') or [], 'section_count': 0, 'chars': 0,
+                    'note': '只有章节级索引：先运行 python tools/build_learning_from_books.py。'}
     raise HTTPException(404, '学习系统不存在。')
+
+
+@app.get('/api/learning/books/overview')
+async def learning_books_overview():
+    """学习板块总览：17 系统各自的原书章节数、小节数、字数。"""
+    return {
+        'source': LEARNING_BOOKS.get('source'),
+        'total_chapters': LEARNING_BOOKS.get('total_chapters', 0),
+        'total_sections': LEARNING_BOOKS.get('total_sections', 0),
+        'systems': [{'id': s['id'], 'name': s['name'], 'chapters': len(s.get('chapters') or []),
+                     'sections': s.get('section_count', 0), 'chars': s.get('chars', 0)}
+                    for s in (LEARNING_BOOKS.get('systems') or [])],
+        'policy': LEARNING_BOOKS.get('policy'),
+    }
+
 
 
 @app.get('/api/library/{book_id}/chunks')

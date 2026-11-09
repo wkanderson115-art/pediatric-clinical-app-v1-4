@@ -38,6 +38,7 @@ TARGETS = [
     'simulation_cases.json',
     'medical_audit.json',
     'insurance_catalog.json',
+    'learning_books.json',
     'library/chapters.json',
     'library/system_map.json',
     'library/books.json',

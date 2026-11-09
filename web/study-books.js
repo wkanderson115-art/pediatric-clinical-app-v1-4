@@ -1,6 +1,8 @@
 'use strict';
-/* V1.10 学习页「原书章节索引」：把已导入电子书的章节按 17 个学习系统归类展示。
- * 数据来自 /library/system_map.json（tools/build_chapters.py 生成），点击跳书库原文。 */
+/* V1.13 学习板块「原书精读」：诸福棠第9版上下册按 17 个学习系统归类的章节与小节导航。
+ * 数据来自 /learning_books.json（tools/build_learning_from_books.py 生成）：
+ *   系统 → 章节（页区间 / 字数 / 原书概述）→ 小节标题（点击跳书库正文块）。
+ * 概述为原书真实段落（OCR 可能有错字），临床核对请回原书。 */
 (() => {
   const el = id => document.getElementById(id);
   const node = (tag, text, cls) => {
@@ -9,61 +11,88 @@
     if (cls) e.className = cls;
     return e;
   };
+  const fmt = n => (n >= 10000 ? (n / 10000).toFixed(1) + ' 万' : String(n));
+
+  function jump(bookId, chunk) {
+    if (window.Library && window.Library.openChapter) {
+      window.Library.openChapter(bookId, chunk || 0);
+    } else if (window.setPage) {
+      window.setPage('library');
+    }
+  }
+
+  function chapterCard(chapter) {
+    const card = node('article', undefined, 'study-book-chapter-card');
+    const head = node('div', undefined, 'study-book-chapter-head');
+    head.append(node('strong', chapter.title));
+    head.append(node('span', [chapter.book_title, 'PDF 第 ' + chapter.page_range + ' 页',
+      fmt(chapter.chars) + ' 字'].filter(Boolean).join(' · '), 'study-book-meta'));
+    card.append(head);
+
+    if (chapter.overview) {
+      const details = node('details', undefined, 'study-book-overview');
+      details.append(node('summary', '原书概述（展开）'));
+      details.append(node('p', chapter.overview, 'study-book-overview-text'));
+      card.append(details);
+    }
+
+    const sections = chapter.sections || [];
+    if (sections.length) {
+      const list = node('div', undefined, 'study-book-sections');
+      const render = limit => {
+        list.replaceChildren();
+        sections.slice(0, limit).forEach(section => {
+          const button = node('button', section.title, 'study-book-section');
+          button.type = 'button';
+          button.title = section.locator || '';
+          button.addEventListener('click', () => jump(chapter.book_id, section.chunk));
+          list.append(button);
+        });
+        if (sections.length > limit) {
+          const more = node('button', '显示全部 ' + sections.length + ' 小节 ›', 'study-book-more');
+          more.type = 'button';
+          more.addEventListener('click', () => render(sections.length));
+          list.append(more);
+        }
+      };
+      render(12);
+      card.append(list);
+    } else {
+      card.append(node('p', '本章没有可导航的小节。', 'subtext'));
+    }
+    return card;
+  }
 
   async function render() {
     const root = el('study-books');
     if (!root) return;
-    let map;
-    try { map = await LocalData.load('/library/system_map.json'); } catch { return; }
-    const systems = (map.systems || []).filter(s => (s.chapters || []).length);
+    let data;
+    try { data = await LocalData.load('/learning_books.json'); } catch { return; }
+
+    const systems = (data.systems || []).filter(s => (s.chapters || []).length);
     root.replaceChildren();
+
+    const summary = el('study-books-summary');
+    if (summary) {
+      summary.textContent = `${(data.systems || []).length} 个系统 · ${data.total_chapters} 章 · ` +
+        `${data.total_sections} 小节 · 摘要与导航可离线使用`;
+    }
     if (!systems.length) {
-      root.append(node('p', '还没有按系统归类的章节：先导入电子书并运行 python tools/build_chapters.py。', 'empty'));
+      root.append(node('p', '还没有原书内容：导入电子书后运行 python tools/build_learning_from_books.py。', 'empty'));
       return;
     }
+
     systems.forEach(system => {
       const details = node('details', undefined, 'study-book-group');
-      const summary = node('summary');
-      const totalChars = system.chapters.reduce((sum, c) => sum + (c.chars || 0), 0);
-      summary.append(node('strong', system.name));
-      summary.append(node('span', ' ' + system.chapters.length + ' 章 · ' + (totalChars / 10000).toFixed(1) + ' 万字', 'study-book-meta'));
-      details.append(summary);
-      const list = node('div', 'study-book-list');
-      system.chapters.forEach(chapter => {
-        const button = node('button', undefined, 'study-book-chapter');
-        button.type = 'button';
-        button.append(node('strong', chapter.title));
-        button.append(node('small', [chapter.book_title, 'PDF 第 ' + chapter.pages + ' 页'].filter(Boolean).join(' · ')));
-        button.addEventListener('click', async () => {
-          if (window.Library && window.Library.openChapter) {
-            await window.Library.openChapter(chapter.book_id, chapter.chunk_start || 0);
-          }
-        });
-        list.append(button);
-      });
-      details.append(list);
+      const head = node('summary');
+      head.append(node('strong', system.name));
+      head.append(node('span', ` ${system.chapters.length} 章 · ${system.section_count} 小节 · ${fmt(system.chars)} 字`, 'study-book-meta'));
+      details.append(head);
+      const body = node('div', 'study-book-list');
+      system.chapters.forEach(chapter => body.append(chapterCard(chapter)));
+      details.append(body);
       root.append(details);
     });
-    if ((map.unmapped || []).length) {
-      const details = node('details', undefined, 'study-book-group');
-      const summary = node('summary');
-      summary.append(node('strong', '未归类章节'));
-      summary.append(node('span', ' ' + map.unmapped.length + ' 章', 'study-book-meta'));
-      details.append(summary);
-      const list = node('div', 'study-book-list');
-      map.unmapped.forEach(chapter => {
-        const button = node('button', undefined, 'study-book-chapter');
-        button.type = 'button';
-        button.append(node('strong', chapter.title));
-        button.append(node('small', [chapter.book_title, 'PDF 第 ' + chapter.pages + ' 页'].filter(Boolean).join(' · ')));
-        button.addEventListener('click', () => {
-          if (window.Library && window.Library.openChapter) window.Library.openChapter(chapter.book_id, chapter.chunk_start || 0);
-        });
-        list.append(button);
-      });
-      details.append(list);
-      root.append(details);
-    }
   }
 
   window.StudyBooks = { render };
